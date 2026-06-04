@@ -14,10 +14,11 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refres
                 }
                 return token;
             },
-            secretOrKey: process.env.SECRET_REFRESH_TOKEN!,
+            secretOrKey: process.env.SECRET_REFRESH_TOKEN! || "SECRET_REFRESH_TOKEN",
             passReqToCallback: true
         });
     }
+
 
     validate(req: Request, payload: { id: string, email: string, iat: number, exp: number }) {
         const refreshToken = req.cookies["refreshToken"];

@@ -27,6 +27,8 @@ export class OllamaService implements OnModuleInit {
     fetchModels() {
         this.models = [
             process.env.MODEL_PRIMARY || "gemini-2.5-flash-lite",
+            "gemini-3.1-flash-lite-preview",
+            "gemini-3.1-flash-lite",
             process.env.MODEL_SECONDARY || "gemma-4-26b-a4b-it",
             process.env.MODEL_TERTIARY || "gemma-4-31b-it"
         ];
@@ -77,7 +79,7 @@ export class OllamaService implements OnModuleInit {
         for (const m of this.models) {
             try {
                 const model = this.genAI.getGenerativeModel({
-                    model: m,
+                    model: m
                 });
                 const chat = model.startChat({
                     history: [

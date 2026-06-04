@@ -1,57 +1,22 @@
-import { EvolutionService } from "../../lib/evolutions/evolutions.service";
 import { PrismaService } from "../../lib/prisma/prisma.service";
-import { EvolutionWebhookPayload } from "../../lib/types";
 import { Injectable } from "@nestjs/common";
 import { ChatbotService } from "../chatbot/chatbot.service";
 import { MessageService } from "../message/message.service";
-import { StatusMessage } from "../../lib/shared/message";
 
 
 
 @Injectable()
 export class WebhookService {
+    private statusInstance: Record<string, string> = {};
     constructor(
         private prisma: PrismaService,
-        private evolution: EvolutionService,
         private chatbotService: ChatbotService,
-        private messageService: MessageService
+        private messageService: MessageService,
     ) { }
-
-    async webhook(id: string, body: EvolutionWebhookPayload) {
-        console.log(body);
-        try {
-            if (body.event === "messages.upsert") {
-                const isMe = body.data.key.fromMe;
-                if (isMe) return { success: true, message: "Ignored self message" };
-
-                const message = body.data.message.conversation || body.data.message.extendedTextMessage?.text || "";
-                const remoteJid = body.data.key.remoteJid;
-                const instanceName = body.instance;
-
-
-                if (!message) return { success: true };
-                this.messageService.create({
-                    whatsappId: instanceName,
-                    remoteJid: remoteJid,
-                    fromMe: true,
-                    type: "text",
-                    content: message,
-                    pushName: body.data.pushName,
-                    status: StatusMessage.sent
-                })
-
-                await this.autoreply(instanceName, remoteJid, message);
-            }
-
-            return { success: true, message: "Successfully" }
-        } catch (err) {
-            console.log(err);
-            return { success: false }
-        }
-    }
-
-    async autoreply(instaceName: string, remoteJid: string, message: string) {
+    
+    async autoreply(remoteJid: string, message: string) {
         const number = remoteJid.split("@")[0];
+        console.log(`Menerima pesan dari ${number}: ${message}`);
         const existing = await this.prisma.autoreply.findFirst({
             where: {
                 name: {
@@ -63,18 +28,22 @@ export class WebhookService {
         });
 
         if (existing) {
-            await this.evolution.sendTextMessage(instaceName, number, existing.replyContent || "");
-            return { success: true };
+            return {
+                success: true,
+                message: existing.replyContent,
+            }
         }
-
         const chatbot = await this.chatbotService.chatbot({ id: remoteJid, message: message });
         if (chatbot?.answer) {
             console.log(chatbot.answer);
             const parseAIChat = this.convertMarkdownToWhatsApp(chatbot.answer);
-            await this.evolution.sendTextMessage(instaceName, number, parseAIChat);
+            return {
+                success: true,
+                message: parseAIChat,
+            }
         }
 
-        return { success: true };
+        return { success: false };
     }
     convertMarkdownToWhatsApp(text: string) {
         if (!text) return "";
@@ -92,17 +61,19 @@ export class WebhookService {
         return formattedText.trim();
     }
 
-    // --- CONTOH PENGGUNAAN ---
-    //     const markdownInput = `
-    // **Ini Bold**
-    // *Ini Italic*
-    // ~~Ini Strikethrough~~
-    // ***Ini Bold Italic***
-    // **~~Bold Strike~~**
-    // > Ini adalah quote
-    // - List item 1
-    // - List item 2
-    // 1. Siji
-    // 2. Loro
-    // `;
+    async updateConnection(instanceName: string, status: string) {
+        const prevStatus = this.statusInstance[instanceName];
+        if (prevStatus === status) {
+            return; 
+        }
+        this.statusInstance[instanceName] = status;
+        await this.prisma.device.updateMany({
+            where: {
+                instanceName: instanceName,
+            },
+            data: {
+                status: status,
+            }
+        });
+    }
 }

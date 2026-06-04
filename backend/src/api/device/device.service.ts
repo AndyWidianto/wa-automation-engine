@@ -3,28 +3,42 @@ import { PrismaService } from '../../lib/prisma/prisma.service';
 import { EvolutionService } from '../../lib/evolutions/evolutions.service';
 import { CreateDevice, PayloadJWT } from '../../lib/types';
 import { TypeNotification } from '../../lib/shared/notification';
+import { WhatsappService } from '@/whatsapp/whatsapp.service';
 
 
 @Injectable()
 export class DeviceService {
   constructor(
     private prisma: PrismaService,
-    private evolution: EvolutionService
+    private evolution: EvolutionService,
+    private whatsapp: WhatsappService,
   ) { }
 
+
+  async checkInstance(instanceName: string): Promise<boolean> {
+    const existing = await this.prisma.device.findUnique({
+      where: {
+        instanceName: instanceName,
+      }
+    });
+    return existing ? true : false;
+  }
   async create(user: PayloadJWT, { name, instanceName }: CreateDevice) {
     if (user.role === "review") {
       throw new BadRequestException("Akses ditolak. Role Review hanya diperbolehkan melihat data.")
     }
-    const instance = await this.evolution.createInstance({ instanceName });
+    const existing = await this.checkInstance(instanceName);
+    if (existing) {
+      throw new BadRequestException("Instance name sudah digunakan. Silakan gunakan nama lain.");
+    }
+    await this.whatsapp.createInstance(instanceName);
     const newDevice = await this.prisma.device.create({
-      data: { id: instance.instance.instanceId, name, instanceName }
+      data: { name, instanceName }
     });
-    await this.setWebhook(instanceName, `api/webhook/${newDevice.id}`);
     await this.prisma.notification.create({
       data: {
         title: `delete autoreply`,
-        content: JSON.stringify(instance),
+        content: instanceName,
         type: TypeNotification.success,
         isRead: false,
         userId: user.id
@@ -32,9 +46,9 @@ export class DeviceService {
     });
     return {
       ...newDevice,
-      status: instance?.connectionStatus ?? 'disconnected',
-      instanceName: instance?.name ?? newDevice.instanceName,
-      integration: instance?.integration ?? 'UNKNOWN'
+      status: 'connecting',
+      instanceName: instanceName,
+      integration: "WHATSAPP-BAILEYS"
     };
   }
 
@@ -49,28 +63,18 @@ export class DeviceService {
       throw new BadRequestException("Akses ditolak. Role Review hanya diperbolehkan melihat data.")
     }
     const device = await this.getOne(id)
-    const instance = await this.evolution.instanceConnect(device.instanceName);
-    return instance;
+    const qrCode = await this.whatsapp.getQrCode(device.instanceName);
+    if (!qrCode) {
+      throw new NotFoundException("QR Code tidak ditemukan. Pastikan instance sudah dibuat dan belum terhubung.");
+    }
+    return qrCode;
   }
 
   async getAll() {
     const devices = await this.prisma.device.findMany({
       orderBy: { createdAt: 'desc' },
     });
-    const instances = await this.evolution.getInstances();
-
-    const instanceMap = new Map(instances.map((i: any) => [i.id, i]));
-
-    return devices.map(device => {
-      const instance: any = instanceMap.get(device.id);
-
-      return {
-        ...device,
-        status: instance?.connectionStatus ?? 'disconnected',
-        instanceName: instance?.name ?? device.instanceName,
-        integration: instance?.integration ?? 'UNKNOWN'
-      };
-    });
+    return devices;
   }
 
   async getOne(id: string) {
@@ -86,14 +90,17 @@ export class DeviceService {
       throw new BadRequestException("Akses ditolak. Role Review hanya diperbolehkan melihat data.")
     }
     const device = await this.getOne(id);
-    await this.evolution.instanceDelete(device.instanceName);
+    if (!device) {
+      throw new NotFoundException("device not found");
+    }
+    await this.whatsapp.deleteInstance(device.instanceName);
     await this.prisma.device.delete({
       where: { id: device.id }
     })
     await this.prisma.notification.create({
       data: {
         title: `delete autoreply`,
-        content: JSON.stringify(device),
+        content: device.instanceName,
         type: TypeNotification.success,
         isRead: false,
         userId: user.id

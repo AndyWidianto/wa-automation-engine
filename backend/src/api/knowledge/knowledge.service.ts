@@ -60,14 +60,14 @@ export class KnowledgeService {
         }
         const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms * 1000));
         const chunkData: { content: string; vector: string }[] = [];
-        if (chunks.length > 95) {
-            throw new BadRequestException({
-                statusCode: 400,
-                message: 'Data terlalu besar, Mas! Maksimal 95 chunk sekali jalan biar server nggak meledak.',
-                error: 'Bad Request',
-                hint: 'Coba pecah dokumen Anda menjadi beberapa bagian kecil atau upload secara bertahap.'
-            });
-        }
+        // if (chunks.length > 95) {
+        //     throw new BadRequestException({
+        //         statusCode: 400,
+        //         message: 'Data terlalu besar, Mas! Maksimal 95 chunk sekali jalan biar server nggak meledak.',
+        //         error: 'Bad Request',
+        //         hint: 'Coba pecah dokumen Anda menjadi beberapa bagian kecil atau upload secara bertahap.'
+        //     });
+        // }
         const batchSize = 10;
         for (let i = 0; i < chunks.length; i += batchSize) {
             const batch = chunks.slice(i, i + batchSize);
@@ -75,7 +75,7 @@ export class KnowledgeService {
             console.log(`Memproses batch ${Math.floor(i / batchSize) + 1}...`);
 
             const results = await Promise.all(batch.map(async (chunk) => {
-                const vector = await this.ollama.embeddingsGemini(chunk);
+                const vector = await this.ollama.embeddings(chunk);
                 return {
                     content: chunk,
                     vector: `[${vector.join(',')}]`
@@ -85,7 +85,6 @@ export class KnowledgeService {
             chunkData.push(...results);
             if (i + batchSize < chunks.length) {
                 console.log("Limit batch tercapai. Menunggu 60 detik agar tidak 429...");
-                await delay(2);
             }
         }
 
