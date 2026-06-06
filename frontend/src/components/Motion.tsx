@@ -25,7 +25,7 @@ export default function MotionModal({ isOpen, onClose, children }: MotionProps) 
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg z-[70]"
           >
-            {children}
+            <div className="h-screen w-full scrollbar-hidden overflow-y-scroll">{children}</div>
           </motion.div>
         </>
       )}

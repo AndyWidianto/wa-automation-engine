@@ -17,6 +17,8 @@ import CreateKnowledgePage from './pages/Knowledge/CreateKnowledge'
 import Home from './pages/Home'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
+import Products from './pages/products/Product'
+import CreateProduct from './pages/products/CreateProduct'
 
 
 export default function App() {
@@ -30,6 +32,8 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/dashboard" element={<Authorization><Layout /></Authorization>}>
               <Route index element={<Dashboard />} />
+              <Route path="products" element={<Products />} />
+              <Route path="products/create" element={<CreateProduct />} />
               <Route path="autoreply" element={<AutoReply />} />
               <Route path="autoreply/create" element={<CreateAutoReply />} />
               <Route path="broadcasts" element={<Broadcast />} />

@@ -195,6 +195,6 @@ export default function useAutoreply() {
         loading,
         handleCurrent,
         handlePrev,
-        itemsPerPage
+        itemsPerPage,
     }
 }

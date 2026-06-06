@@ -9,6 +9,7 @@ import {
   CirclePlus,
   Sparkles,
   Bot,
+  Box,
 } from "lucide-react";
 import MotionModal from './Motion';
 import ChatModal from './ChatModal';
@@ -67,6 +68,29 @@ export default function Layout() {
           description: 'Buat aturan balasan otomatis baru',
           icon: <CirclePlus size={20} />,
           path: '/dashboard/autoreply/create'
+        },
+      ]
+    },
+    {
+      id: 321,
+      type: "group",
+      active: false,
+      label: 'Products',
+      description: 'Kelola products',
+      subMenu: [
+        {
+          id: 21,
+          label: 'Products',
+          description: 'Daftar Products',
+          icon: <Box size={20} />,
+          path: '/dashboard/products'
+        },
+        {
+          id: 22,
+          label: 'Create Product',
+          description: 'Buat product baru',
+          icon: <CirclePlus size={20} />,
+          path: '/dashboard/products/create'
         },
       ]
     },
@@ -142,25 +166,25 @@ export default function Layout() {
     const id = crypto.randomUUID();
     setSessionId(id);
   };
-const handleLogout = async () => {
-  if (!confirm("Apakah anda yakin ingin logout?")) return;
+  const handleLogout = async () => {
+    if (!confirm("Apakah anda yakin ingin logout?")) return;
     try {
-        await axiosPrivate.post("/logout");
-        localStorage.removeItem("accessToken"); 
-        navigate("/login");
-        toast.success("Berhasil logout", {
-            style: {
-                borderRadius: '12px',
-                background: '#1e293b',
-                color: '#fff',
-            },
-        });
-        logout();
+      await axiosPrivate.post("/logout");
+      localStorage.removeItem("accessToken");
+      navigate("/login");
+      toast.success("Berhasil logout", {
+        style: {
+          borderRadius: '12px',
+          background: '#1e293b',
+          color: '#fff',
+        },
+      });
+      logout();
     } catch (err: any) {
-        console.error("Logout Error:", err);
-        navigate("/login");
+      console.error("Logout Error:", err);
+      navigate("/login");
     }
-};
+  };
   useEffect(() => {
     setRandomId();
     // socket.on("connect", () => {
@@ -175,20 +199,20 @@ const handleLogout = async () => {
   return (
     <div className="flex min-h-screen p-1 md:p-6 bg-gray-100 dark:bg-background dark:text-white w-full h-full">
       {/* Sidebar */}
-      <Sidebar 
-      openSidebar={openSidebar} 
-      sidebars={sidebars} 
-      handleToggleSidebar={toggleSidebar} 
-      handleHeaderContent={setHeaderContent} 
-      logout={handleLogout}
+      <Sidebar
+        openSidebar={openSidebar}
+        sidebars={sidebars}
+        handleToggleSidebar={toggleSidebar}
+        handleHeaderContent={setHeaderContent}
+        logout={handleLogout}
       />
 
       {/* Main Content */}
       <main className={`flex-1 min-w-0 md:pl-2 pb-20 ${openSidebar ? 'lg:ml-55' : 'ml-0 lg:ml-55'} transition-all duration-300`}>
-        <Header 
-        handleToggleSidebar={toggleSidebar} 
-        headerContent={headerContent} 
-        logout={handleLogout}
+        <Header
+          handleToggleSidebar={toggleSidebar}
+          headerContent={headerContent}
+          logout={handleLogout}
         />
         <div className="mt-15"></div>
         <div className="p-1 md:pl-4">
