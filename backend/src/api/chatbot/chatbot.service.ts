@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../lib/prisma/prisma.service";
 import { OllamaService } from "../../lib/ollama/ollama.service";
+import { Autoreply } from "@prisma/client";
 
 
 
@@ -11,17 +12,30 @@ interface KnowledgeChunk {
 
 @Injectable()
 export class ChatbotService {
+    private mappingAutoreply = new Map<string, Autoreply[]>();
     constructor(
         private prisma: PrismaService,
-        private ollama: OllamaService
+        private ollama: OllamaService,
     ) { }
 
     async chatbot(data: { id: string, message: string }) {
-        const autoreply = await this.prisma.autoreply.findFirst({
-            where: { type: "ai_rag", isActive: true }
-        });
-
-        if (!autoreply) return { answer: "Layanan sedang non-aktif.", sources: [] };
+        const rawAutoreply = this.mappingAutoreply.get("ai_rag");
+        let autoreply: any = null;
+        if (rawAutoreply) {
+            try {
+                autoreply = typeof rawAutoreply === 'string' ? JSON.parse(rawAutoreply) : rawAutoreply;
+            } catch (e) {
+                console.error("Gagal melakukan parse JSON ai_rag:", e);
+            }
+        }
+        if (!autoreply) {
+            autoreply = await this.prisma.autoreply.findFirst({
+                where: { type: "ai_rag", isActive: true }
+            });
+        }
+        if (!autoreply) {
+            return { answer: "Layanan sedang non-aktif.", sources: [] };
+        }
 
         let searchMessage = await this.ollama.reWrite(data.id, data.message);
 
@@ -37,7 +51,7 @@ export class ChatbotService {
         `;
         const contextText = contextChunks.map(c => c.content).join('\n\n');
         const systemRules = `
-        ${autoreply.aiPrompt || 'Asisten...'}
+        ${rawAutoreply?.map(raw => `${raw.aiPrompt} \n`) || 'Asisten...'}
 
         Aturan:
         - Gunakan data pada KONTEKS sebagai sumber informasi utama.
@@ -51,7 +65,19 @@ export class ChatbotService {
         "customerName": "Nama user",
         "phone": "Nomor HP user",
         "address": "Alamat lengkap user",
-        "totalPrice": 225000
+        "totalPrice": 225000,
+        "items": [
+            {
+                "id": "product1",
+                "price": 140000,
+                "quantity": 2,
+            },
+            {
+                "id": "product2",
+                "price": 100000,
+                "quantity": 2,
+            }
+        ]
         }
         </order_data>
 

@@ -8,6 +8,8 @@ import { UsersModule } from "./users/users.module";
 import { WebhookModule } from "./webhook/webhook.module";
 import { MessageModule } from "./message/message.module";
 import { NotificationModule } from "./notification/notification.module";
+import { OrderModule } from "./order/order.module";
+import { ProductModule } from "./product/product.module";
 
 
 @Module({
@@ -20,7 +22,9 @@ import { NotificationModule } from "./notification/notification.module";
         UsersModule,
         WebhookModule,
         MessageModule,
-        NotificationModule
+        NotificationModule,
+        OrderModule,
+        ProductModule
     ]
 })
 export class ApiModule {}

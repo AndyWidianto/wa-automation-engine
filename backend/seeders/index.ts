@@ -1,4 +1,5 @@
 import { createAutoreplies } from "./autoreplies";
+import { seedProducts } from "./products";
 import { userSeeders } from "./user";
 
 

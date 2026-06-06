@@ -35,7 +35,6 @@ export class WebhookService {
         }
         const chatbot = await this.chatbotService.chatbot({ id: remoteJid, message: message });
         if (chatbot?.answer) {
-            console.log(chatbot.answer);
             const parseAIChat = this.convertMarkdownToWhatsApp(chatbot.answer);
             return {
                 success: true,

@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { PrismaService } from "@/lib/prisma/prisma.service";
 import { EmailService } from "@/lib/email/email.service";
+import { OrderClient } from "@/lib/types";
 
 
 @Injectable()
@@ -92,6 +93,7 @@ export class WhatsappService implements OnModuleInit {
             if (m.type !== 'notify') return;
 
             for (const msg of m.messages) {
+                if (msg.key.remoteJid === 'status@broadcast') return;
                 const message = msg?.message?.conversation || msg?.message?.extendedTextMessage?.text || msg?.message?.imageMessage?.caption || "";
                 const remoteJid = msg.key.remoteJidAlt || msg.key.participant || "";
                 const res = await this.webhook.autoreply(remoteJid, message);
@@ -100,7 +102,7 @@ export class WhatsappService implements OnModuleInit {
                 if (match) {
                     try {
                         const jsonString = match[1].trim();
-                        const orderData = JSON.parse(jsonString);
+                        const orderData: OrderClient = JSON.parse(jsonString);
                         if (orderData.isOrderValid) {
                             this.logger.log(`📥 Orderan Baru Masuk dari ${orderData.customerName}! Menyiapkan Email...`);
                             await this.email.sendOrderEmail(orderData);
@@ -113,21 +115,21 @@ export class WhatsappService implements OnModuleInit {
                 await this.sendMessage(instanceName, remoteJid, res.message || ""); // Kirim balasan ke WhatsApp
             }
         });
-        sock.ev.on('messages.update', async (m) => {
-            console.log('Messages Update:', m); // Debug log untuk melihat detail pembaruan pesan
-        });
-        sock.ev.on('messages.delete', async (m) => {
-            console.log('Messages Delete:', m); // Debug log untuk melihat detail pesan yang dihapus
-        });
-        sock.ev.on('presence.update', async (m) => {
-            console.log('Presence Update:', m); // Debug log untuk melihat detail pembaruan status kehadiran
-        });
-        sock.ev.on('chats.update', (m) => {
-            console.log('Chats Update:', m); // Debug log untuk melihat detail pembaruan obrolan
-        });
-        sock.ev.on('contacts.update', (m) => {
-            console.log('Contacts Update:', m); // Debug log untuk melihat detail pembaruan kontak
-        });
+        // sock.ev.on('messages.update', async (m) => {
+        //     console.log('Messages Update:', m); // Debug log untuk melihat detail pembaruan pesan
+        // });
+        // sock.ev.on('messages.delete', async (m) => {
+        //     console.log('Messages Delete:', m); // Debug log untuk melihat detail pesan yang dihapus
+        // });
+        // sock.ev.on('presence.update', async (m) => {
+        //     console.log('Presence Update:', m); // Debug log untuk melihat detail pembaruan status kehadiran
+        // });
+        // sock.ev.on('chats.update', (m) => {
+        //     console.log('Chats Update:', m); // Debug log untuk melihat detail pembaruan obrolan
+        // });
+        // sock.ev.on('contacts.update', (m) => {
+        //     console.log('Contacts Update:', m); // Debug log untuk melihat detail pembaruan kontak
+        // });
     }
 
     async sendMessage(instanceName: string, to: string, text: string): Promise<void> {

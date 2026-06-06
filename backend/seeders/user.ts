@@ -18,7 +18,7 @@ export async function userSeeders() {
     },
     {
       name: 'Budi Santoso',
-      email: 'budi@desa.go.id',
+      email: 'budi@admin.go.id',
       password: "budy12345678$",
       role: UserRole.admin,
       username: "budy1234",
@@ -26,15 +26,15 @@ export async function userSeeders() {
     },
     {
       name: 'Siti Aminah',
-      email: 'siti@desa.go.id',
+      email: 'siti@admin.go.id',
       password: "password1234",
       role: UserRole.admin,
       username: "siti123",
       updatedAt: new Date(),
     },
     {
-      name: 'Admin Desa',
-      email: 'admin@desa.go.id',
+      name: 'Admin admin',
+      email: 'admin@admin.go.id',
       password: "admin09876545&",
       role: UserRole.admin,
       username: "admin1234",

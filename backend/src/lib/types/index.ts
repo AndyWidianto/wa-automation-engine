@@ -6,4 +6,5 @@ export type * from "./chatbot";
 export type * from "./user";
 export type * from "./notification";
 export type * from "./message";
+export type * from "./order";
 

@@ -27,25 +27,43 @@ export class OllamaService implements OnModuleInit {
     fetchModels() {
         this.models = [
             process.env.MODEL_PRIMARY || "gemini-2.5-flash-lite",
-            "gemini-3.1-flash-lite-preview",
-            "gemini-3.1-flash-lite",
-            process.env.MODEL_SECONDARY || "gemma-4-26b-a4b-it",
-            process.env.MODEL_TERTIARY || "gemma-4-31b-it"
+            process.env.MODEL_SECONDARY!,
+            process.env.MODEL_TERTIARY!,
+            "gemma-4-26b-a4b-it",
+            "gemma-4-31b-it",
         ];
         this.modelsEmbedding = [
             process.env.MODEL_EMBEDDING_PRIMARY || "bge-m3",
             process.env.MODEL_EMBEDDING_SECONDARY || "gemini-embedding-001",
+            process.env.MODEL_EMBEDDING_TERTIARY!
         ];
     }
 
     async embeddings(text: string) {
-        const response = await this.ollama.embeddings({
-            model: 'bge-m3',
-            prompt: text,
-        });
+        // const response = await this.ollama.embeddings({
+        //     model: 'bge-m3',
+        //     prompt: text,
+        // });
 
-        const embedding = response.embedding;
-        return embedding;
+        // const embedding = response.embedding;
+        // return embedding;
+        for (const modelName of this.modelsEmbedding) {
+            try {
+                const model = this.genAI.getGenerativeModel({ model: modelName });
+                const result = await model.embedContent({
+                    content: {
+                        parts: [{ text: text }]
+                    },
+                    outputDimensionality: 1024,
+                } as any);
+
+                const embedding = result.embedding;
+                return embedding.values;
+            } catch (err) {
+                console.error(`Gagal mendapatkan embedding dari model ${modelName}:`, err);
+            }
+        }
+        throw new Error("Gagal mendapatkan embedding dari semua model yang tersedia.");
     }
 
     async embeddingsGemini(text: string) {
