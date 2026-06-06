@@ -8,12 +8,13 @@ import { MessageService } from "../message/message.service";
 @Injectable()
 export class WebhookService {
     private statusInstance: Record<string, string> = {};
+    private phoneNumber: Record<string, string | null> = {};
     constructor(
         private prisma: PrismaService,
         private chatbotService: ChatbotService,
         private messageService: MessageService,
     ) { }
-    
+
     async autoreply(remoteJid: string, message: string) {
         const number = remoteJid.split("@")[0];
         console.log(`Menerima pesan dari ${number}: ${message}`);
@@ -60,18 +61,21 @@ export class WebhookService {
         return formattedText.trim();
     }
 
-    async updateConnection(instanceName: string, status: string) {
+    async updateConnection(instanceName: string, status: string, phoneNumber?: string) {
         const prevStatus = this.statusInstance[instanceName];
-        if (prevStatus === status) {
-            return; 
+        const prevPhoneNumber = this.phoneNumber[instanceName];
+        if (prevStatus === status && prevPhoneNumber === phoneNumber) {
+            return;
         }
         this.statusInstance[instanceName] = status;
+        this.phoneNumber[instanceName] = phoneNumber || null;
         await this.prisma.device.updateMany({
             where: {
                 instanceName: instanceName,
             },
             data: {
                 status: status,
+                number: phoneNumber
             }
         });
     }

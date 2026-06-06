@@ -70,8 +70,16 @@ export class DeviceService {
     return qrCode;
   }
 
-  async getAll() {
+  async getAll(status?: string) {
     const devices = await this.prisma.device.findMany({
+      where: {
+        ...status ? {
+          status: {
+            contains: status,
+            mode: "insensitive"
+          }
+        } : {}
+      },
       orderBy: { createdAt: 'desc' },
     });
     return devices;
@@ -108,4 +116,5 @@ export class DeviceService {
     });
     return { message: "Delete device successfully" };
   }
+
 }

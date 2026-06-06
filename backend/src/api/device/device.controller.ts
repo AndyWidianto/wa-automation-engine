@@ -17,9 +17,8 @@ export class DeviceController {
     }
 
     @Get()
-    @UseGuards(AuthGuard("jwt"))
-    async getAll() {
-        return this.deviceService.getAll();
+    async getAll(@Query() query: { status?: string }) {
+        return this.deviceService.getAll(query.status);
     }
 
     @Post("connection/:id")
@@ -35,4 +34,5 @@ export class DeviceController {
         const user = req.user;
         return this.deviceService.delete(user, id);
     }
+    
 }

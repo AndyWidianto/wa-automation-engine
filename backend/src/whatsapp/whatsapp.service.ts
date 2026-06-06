@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException, OnModuleInit } from "@nestjs/common";
-import { makeWASocket, DisconnectReason, useMultiFileAuthState, WASocket } from '@whiskeysockets/baileys';
+import { makeWASocket, DisconnectReason, useMultiFileAuthState, WASocket, jidNormalizedUser } from '@whiskeysockets/baileys';
 import * as qrcode from 'qrcode-terminal';
 import pino from 'pino';
 import QRCodeNode from 'qrcode';
@@ -53,10 +53,11 @@ export class WhatsappService implements OnModuleInit {
                 await this.webhook.updateConnection(instanceName, 'qr_generated');
             }
             if (connection === 'open') {
-                console.log("Connection Update:", update); // Debug log untuk melihat detail pembaruan koneksi
                 this.logger.log(`🚀 [${instanceName}] Berhasil terhubung! Menghapus data QR dari memori.`);
                 delete RAM_CACHE_QR_CODE[`${instanceName}-qrcode`];
-                await this.webhook.updateConnection(instanceName, 'connected');
+                console.log("User: ", sock.user);
+                const phoneNumber = sock.user?.phoneNumber || jidNormalizedUser(sock.user?.id).split("@")[0];
+                await this.webhook.updateConnection(instanceName, 'connected', phoneNumber);
                 const pendingMessages = this.messageQueue.get(instanceName) || [];
                 for (const { to, text } of pendingMessages) {
                     await this.sendMessage(instanceName, to, text);
