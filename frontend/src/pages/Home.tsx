@@ -1,161 +1,156 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { ShoppingBag, ChevronRight, MessageCircle, Sparkles, LogIn } from 'lucide-react';
+import useAxios from '../lib/axios.service';
+import { Link } from 'react-router';
 
-export default function LandingPage() {
-  // State untuk mengontrol visibilitas modal chat
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export default function FashionLandingPage() {
+  const { axiosPrivate } = useAxios();
+  const [waBotLink, setWaBotLink] = useState<string | null>(null);
 
-  const handleStartLiveWebChat = () => {
-    alert('Fungsi ini akan membuka widget Live Chat Web bawaan Anda!');
-    // Integrasikan dengan WebSocket atau state chat internal React kamu di sini
-    setIsModalOpen(false);
-  };
+  const fetchDevices = async () => {
+    try {
+      const res = await axiosPrivate.get("/devices?status=connected");
+      const data = res.data;
+      console.log(data);
+      if (data.length > 0) {
+        const contact = data[data.length - 1].number;
+        setWaBotLink(`https://wa.me/${contact}?text=Halo%20Vogue%20Hub,%20saya%20ingin%20tanya%20seputar%20koleksi%20pakaian.`)
+      }
+    } catch (err) {
+      console.error("Fetch Error: ", err);
+    }
+  }
+
+  useEffect(() => {
+    fetchDevices();
+  }, [])
+
 
   return (
-    <div className="min-h-screen text-white bg-gradient-to-135 from-slate-900 via-indigo-950 to-purple-950 font-sans overflow-x-hidden relative">
-      
+    <div className="min-h-screen text-slate-100 bg-[#0f172a] font-sans overflow-x-hidden relative">
+
+      {/* ⚠️ TOP ALERT BANNER - PROJECT DISCLAIMER */}
+      <div className="bg-gradient-to-r from-rose-500/90 to-orange-500/90 py-2 px-4 text-center text-xs sm:text-sm font-medium text-white backdrop-blur-sm z-50 relative flex items-center justify-center gap-2 shadow-md">
+        <Sparkles size={14} className="animate-pulse" />
+        <span><strong>Perhatian:</strong> Ini adalah project portofolio AI (Bukan toko resmi). Pemesanan dialihkan ke bot simulasi.</span>
+      </div>
+
       {/* NAVBAR SECTION */}
-      <nav className="container mx-auto px-6 py-4 flex justify-between items-center relative z-10">
-        <div className="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-          UMKM<span className="text-white">HUB.</span>
+      <nav className="container mx-auto px-6 py-5 flex justify-between items-center relative z-20 border-b border-white/5">
+        <div className="text-2xl font-black tracking-tighter flex items-center gap-2">
+          <span className="bg-white text-slate-900 p-1.5 rounded-lg">
+            <ShoppingBag size={24} />
+          </span>
+          VOGUE<span className="text-slate-500 font-light">HUB</span>
         </div>
-        <div className="hidden md:flex space-x-8 text-sm font-medium tracking-wide text-slate-300">
-          <a href="#produk" className="hover:text-emerald-400 transition-colors">Produk</a>
-          <a href="#fitur" className="hover:text-emerald-400 transition-colors">Fitur</a>
-          <a href="#testimoni" className="hover:text-emerald-400 transition-colors">Testimoni</a>
+        <div className="hidden md:flex space-x-10 text-sm font-medium tracking-widest uppercase text-slate-400">
+          <a href="#koleksi" className="hover:text-white transition-colors duration-300">Koleksi Produk</a>
+          <a href="#cerita" className="hover:text-white transition-colors duration-300">Tentang Kami</a>
         </div>
-        <button className="bg-emerald-500 hover:bg-emerald-600 px-5 py-2 rounded-full text-sm font-bold shadow-lg shadow-emerald-500/30 transition-all transform hover:-translate-y-0.5">
-          Mulai Sekarang
-        </button>
+        <div className="flex items-center gap-3">
+          <a
+            href={waBotLink || ""}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white hover:bg-slate-200 text-slate-900 px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-white/10 transition-all transform hover:-translate-y-0.5 uppercase tracking-wide flex items-center gap-2"
+          >
+            <MessageCircle size={16} className="text-emerald-500" />
+            Chat AI Bot
+          </a>
+          <Link
+            to="/login"
+            rel="noopener noreferrer"
+            className="px-6 py-2.5 rounded-full text-sm font-bold transition-all transform hover:-translate-y-0.5 uppercase tracking-wide flex items-center gap-2"
+          >
+            <LogIn size={16} className="text-emerald-500" />
+            Log In
+          </Link>
+        </div>
       </nav>
 
       {/* HERO SECTION */}
-      <header className="container mx-auto px-6 pt-12 pb-24 relative flex flex-col md:flex-row items-center justify-between">
-        {/* Lingkaran Dekorasi Blur di Background */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl -z-10"></div>
+      <header className="container mx-auto px-6 pt-16 pb-28 relative flex flex-col lg:flex-row items-center justify-between min-h-[85vh]">
+
+        {/* Dekorasi Cahaya Premium */}
+        <div className="absolute top-1/4 -left-1/4 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-rose-600/10 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
 
         {/* Sisi Kiri: Teks & Aksi */}
-        <div className="md:w-1/2 space-y-6 text-center md:text-left">
-          <span className="inline-block bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs px-4 py-1.5 rounded-full font-bold uppercase tracking-widest">
-            🚀 IDCamp 2026 Project Showcase
-          </span>
-          <h1 className="text-4xl md:text-6xl font-black leading-tight">
-            Bawa Produk UMKM Anda ke <br />
-            <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Level Global</span>
+        <div className="lg:w-1/2 space-y-8 text-center lg:text-left z-10 relative">
+
+          <div className="inline-flex items-center gap-2 bg-slate-800/50 backdrop-blur-md border border-slate-700/50 text-slate-300 text-xs px-4 py-2 rounded-full font-medium tracking-widest uppercase shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse"></span>
+            WhatsApp AI Agent Aktif
+          </div>
+
+          <h1 className="text-5xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight">
+            Elevasi Gaya <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-300 to-slate-500">
+              Tanpa Batas.
+            </span>
           </h1>
-          <p className="text-slate-400 text-lg max-w-lg mx-auto md:mx-0">
-            Kelola ratusan produk, otomatisasi layanan pelanggan, dan tingkatkan penjualan UMKM Anda dengan integrasi Omni-channel cerdas.
+
+          <p className="text-slate-400 text-lg lg:text-xl max-w-lg mx-auto lg:mx-0 font-light leading-relaxed">
+            Temukan pakaian eksklusif dengan kualitas butik premium. Punya pertanyaan seputar produk? Tanyakan langsung pada asisten AI kami.
           </p>
-          
-          <div className="flex flex-col sm:flex-row justify-center md:justify-start gap-4 pt-4">
-            <button className="bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 px-8 py-4 rounded-xl font-bold shadow-xl shadow-cyan-500/20 transition-all transform hover:-translate-y-1">
-              Jelajahi Produk
-            </button>
-            
-            {/* TOMBOL UTAMA CHAT */}
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-md px-8 py-4 rounded-xl font-bold border border-white/10 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 shadow-lg"
+
+          <div className="flex justify-center lg:justify-start pt-4">
+            {/* TOMBOL UTAMA DIRECT WHATSAPP */}
+            <a
+              href={waBotLink || ""}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white hover:bg-slate-200 text-slate-900 px-8 py-4 rounded-xl font-bold transition-all transform hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.15)] flex items-center justify-center gap-3 group w-full sm:w-auto"
             >
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-              </span>
-              Hubungi Admin
-            </button>
+              <MessageCircle size={22} className="text-[#25D366]" />
+              Mulai Chat di WhatsApp
+              <ChevronRight size={18} className="text-slate-500 group-hover:translate-x-1 transition-transform" />
+            </a>
           </div>
         </div>
 
-        {/* Sisi Kanan: Mockup Mini Dashboard */}
-        <div className="md:w-1/2 mt-16 md:mt-0 flex justify-center relative">
-          <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl w-full max-w-md shadow-2xl border border-white/10">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
-              <div className="flex space-x-2">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+        {/* Sisi Kanan: Modern Fashion Showcase Mockup */}
+        <div className="lg:w-1/2 mt-20 lg:mt-0 flex justify-center relative z-10 w-full">
+          <div className="relative w-full max-w-md aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 group">
+
+            {/* Gambar Placeholder Fashion */}
+            <img
+              src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1470&auto=format&fit=crop"
+              alt="Fashion Model"
+              className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+            />
+
+            {/* Overlay Gradien Bawah */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/40 to-transparent"></div>
+
+            {/* Float Product Info Card (Hanya Info, Tanpa Tombol Beli) */}
+            <div className="absolute bottom-6 left-6 right-6">
+              <div className="bg-slate-900/80 backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-xl flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-emerald-400 font-mono tracking-widest mb-1">NEW ARRIVAL</p>
+                  <h3 className="text-white font-bold text-lg">Silk Noir Dress</h3>
+                  <p className="text-slate-400 text-sm mt-0.5">Rp 1.450.000</p>
+                </div>
+                {/* Indikator Status Database */}
+                <div className="bg-slate-800 px-3 py-1.5 rounded-lg border border-white/5">
+                  <span className="text-[10px] text-slate-400 font-mono block text-center">ID Produk</span>
+                  <span className="text-xs text-white font-bold block text-center">PRD-001</span>
+                </div>
               </div>
-              <span className="text-xs text-emerald-400 font-mono">● Live Server Connected</span>
             </div>
-            <div className="space-y-3 text-slate-300">
-              <div className="bg-white/5 p-3 rounded-xl flex justify-between items-center border border-white/5">
-                <span className="text-sm font-medium">PRD-001 - Gamis Syari Khalisa</span>
-                <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full">Stok: 35</span>
-              </div>
-              <div className="bg-white/5 p-3 rounded-xl flex justify-between items-center border border-white/5">
-                <span className="text-sm font-medium">PRD-006 - Kopi Susu Gula Aren</span>
-                <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full">Stok: 100</span>
-              </div>
-              <div className="bg-white/5 p-3 rounded-xl flex justify-between items-center border border-white/5">
-                <span className="text-sm font-medium">PRD-013 - Kaos Polos Combed</span>
-                <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full">Stok: 250</span>
-              </div>
+
+            {/* Float System Indicator */}
+            <div className="absolute top-6 right-6 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2 shadow-lg">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#25D366] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#25D366]"></span>
+              </span>
+              <span className="text-[10px] font-mono text-slate-300">RAG Knowledge Synced</span>
             </div>
           </div>
         </div>
       </header>
 
-      {/* MODAL POPUP SELEKSI CHAT (CONDITIONAL RENDERING) */}
-      {isModalOpen && (
-        <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300"
-          onClick={() => setIsModalOpen(false)} // Menutup modal jika klik di luar kotak
-        >
-          <div 
-            className="bg-slate-900 border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl relative transform scale-100 transition-all"
-            onClick={(e) => e.stopPropagation()} // Mencegah modal tertutup ketika kotak dalam diklik
-          >
-            {/* Tombol Close */}
-            <button 
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
-            >
-              ✕
-            </button>
-
-            {/* Judul Modal */}
-            <div className="text-center space-y-2 mb-6">
-              <h3 className="text-xl font-bold">Mau Ngobrol Lewat Mana?</h3>
-              <p className="text-sm text-slate-400">Pilih opsi kenyamanan saluran komunikasi Anda.</p>
-            </div>
-
-            {/* Opsi Pilihan Saluran */}
-            <div className="space-y-3">
-              {/* OPSI 1: WHATSAPP */}
-              <a 
-                href="https://wa.me/6281234567890?text=Halo%20Admin%20UMKM%20Hub,%20saya%20tertarik%20dengan%20layanan%20Anda" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-between p-4 bg-emerald-600 hover:bg-emerald-500 rounded-2xl font-semibold transition-all shadow-lg shadow-emerald-600/25 group"
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl">💬</span> {/* Ganti icon jika pakai lucide-react / font-awesome */}
-                  <div className="text-left">
-                    <p className="text-sm font-bold text-white">WhatsApp Chat</p>
-                    <p className="text-xs text-emerald-200 font-normal">Respon Cepat & Otomatis Bot</p>
-                  </div>
-                </div>
-                <span className="text-xs transform group-hover:translate-x-1 transition-transform">➔</span>
-              </a>
-
-              {/* OPSI 2: WEB CHAT DIRECT */}
-              <button 
-                onClick={handleStartLiveWebChat}
-                className="w-full flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 border border-white/5 rounded-2xl font-semibold transition-all group"
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl">🌐</span>
-                  <div className="text-left">
-                    <p className="text-sm font-bold text-white">Live Chat Web</p>
-                    <p className="text-xs text-slate-400 font-normal">Langsung di Browser Anda</p>
-                  </div>
-                </div>
-                <span className="text-xs transform group-hover:translate-x-1 transition-transform">➔</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { LogOut, X, ChevronRight } from "lucide-react";
+import { LogOut, X, ChevronRight, ShoppingBag } from "lucide-react";
 import { NavLink } from "react-router";
 
 interface SidebarProps {
@@ -29,12 +29,12 @@ export default function Sidebar({ sidebars, openSidebar, handleToggleSidebar, ha
 
         {/* Logo Section */}
         <div className="flex items-center gap-3 px-6 h-20 mb-4">
-          <div className="w-9 h-9 bg-gradient-to-tr from-orange-600 to-orange-400 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20">
-            <img src="/icons/apple-touch-icon.png" alt="logo" className="w-full h-full rounded-sm" />
-          </div>
-          <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Chat<span className="text-blue-500">BOT</span>
+        <div className="text-2xl font-black tracking-tighter flex items-center gap-2">
+          <span className="bg-white text-slate-900 p-1.5 rounded-lg">
+            <ShoppingBag size={24} />
           </span>
+          VOGUE<span className="text-slate-500 font-light">HUB</span>
+        </div>
         </div>
 
         {/* Navigation Section */}

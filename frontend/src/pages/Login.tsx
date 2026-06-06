@@ -1,110 +1,145 @@
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, ShoppingBag } from 'lucide-react';
 import useLogin from '../hooks/login';
-import Loading from '../components/Loading';
+
 
 export default function LoginPage() {
   const { loading, setFormData, setShowPassword, showPassword, handleSubmit } = useLogin();
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#030712] flex items-center justify-center p-4 font-sans relative overflow-hidden">
-      {/* Decorative Glow Background Elements */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 rounded-full blur-[140px]"></div>
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-gradient-to-br from-cyan-500/20 to-violet-500/20 rounded-full blur-[140px]"></div>
+    <div className="min-h-screen bg-[#0f172a] text-slate-100 font-sans relative overflow-hidden flex flex-col">
 
-      <div className="w-full max-w-[1100px] grid grid-cols-1 lg:grid-cols-2 bg-white/80 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[2.5rem] border border-slate-200/50 dark:border-slate-800/80 shadow-[0_32px_64px_-15px_rgba(0,0,0,0.08)] overflow-hidden relative z-10">
+      {/* ⚠️ TOP ALERT BANNER - PROJECT DISCLAIMER */}
+      <div className="bg-gradient-to-r from-rose-500/90 to-orange-500/90 py-2 px-4 text-center text-xs sm:text-sm font-medium text-white backdrop-blur-sm z-50 relative flex items-center justify-center gap-2 shadow-md w-full">
+        <Sparkles size={14} className="animate-pulse" />
+        <span><strong>Perhatian:</strong> Ini adalah portal admin portofolio AI (Bukan sistem toko resmi).</span>
+      </div>
 
-        {/* Left Side: Premium Illustration & Info */}
-        <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-700 text-white relative overflow-hidden">
+      {/* Main Content Area */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 relative z-10">
 
-          {/* Decorative inner glow for premium look */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_50%)]"></div>
+        {/* Decorative Ambient Lights (Boutique Style) */}
+        <div className="absolute top-[10%] left-[10%] w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute bottom-[10%] right-[10%] w-[400px] h-[400px] bg-rose-600/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-          <div className="relative z-10">
-            <div className="w-14 h-14 bg-white/15 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-10 border border-white/25 shadow-xl shadow-indigo-900/20">
-              <img src="/icons/apple-touch-icon.png" alt="logo chatbot" className="w-full h-full bg-white rounded-2xl object-cover p-1" />
+        {/* The Glassmorphism Card */}
+        <div className="w-full max-w-[1100px] grid grid-cols-1 lg:grid-cols-2 bg-[#1e293b]/60 backdrop-blur-2xl rounded-[2.5rem] border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden relative z-20">
+
+          {/* Left Side: Premium Fashion Imagery & Info */}
+          <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden group">
+
+            {/* Dark Fashion Background Image */}
+            <div className="absolute inset-0 z-0">
+              <img
+                src="https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=1471&auto=format&fit=crop"
+                alt="Fashion Background"
+                className="w-full h-full object-cover opacity-30 transform group-hover:scale-105 transition-transform duration-1000 ease-out"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/80 to-transparent"></div>
             </div>
-            <h1 className="text-4xl font-extrabold leading-[1.2] mb-5 tracking-tight bg-gradient-to-r from-white via-white to-blue-100 bg-clip-text text-transparent">
-              Automasi layanan <br /> WhatsApp UMKM.
-            </h1>
-            <p className="text-indigo-100/80 text-base leading-relaxed max-w-sm font-medium">
-              Kelola pesan pelanggan, berikan balasan otomatis berbasis AI, dan tingkatkan konversi penjualan dengan platform EvolveWA.
-            </p>
-          </div>
 
-          <div className="relative z-10 space-y-6">
-            <div className="bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/10 inline-block shadow-lg max-w-sm">
-              <p className="text-sm leading-relaxed font-medium text-slate-50 italic">
-                "Sistem RAG chatbot-nya sangat membantu efisiensi operasional dan melayani customer UMKM kami secara 24/7."
+            <div className="relative z-10">
+              {/* Logo Matching Landing Page */}
+              <div className="text-2xl font-black tracking-tighter flex items-center gap-2 mb-12">
+                <span className="bg-white text-slate-900 p-1.5 rounded-lg shadow-lg">
+                  <ShoppingBag size={24} />
+                </span>
+                VOGUE<span className="text-slate-400 font-light">HUB</span>
+              </div>
+
+              <h1 className="text-4xl font-extrabold leading-[1.1] mb-5 tracking-tight text-white">
+                Manajemen Butik <br /> & AI Assistant.
+              </h1>
+              <p className="text-slate-300 text-base leading-relaxed max-w-sm font-light">
+                Kelola katalog pakaian eksklusif, pantau integrasi bot WhatsApp, dan tingkatkan pengalaman pelanggan dalam satu pintu.
               </p>
-              <p className="text-xs mt-3 font-bold text-indigo-200 tracking-wide uppercase">— Owner UMKM</p>
-            </div>
-          </div>
-
-          {/* Abstract pattern decoration */}
-          <div className="absolute top-0 right-0 w-full h-full opacity-5 pointer-events-none">
-            <svg width="100%" height="100%"><pattern id="pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="white" /></pattern><rect width="100%" height="100%" fill="url(#pattern)" /></svg>
-          </div>
-        </div>
-
-        {/* Right Side: Sleek Login Form */}
-        <div className="p-8 sm:p-12 md:p-16 flex flex-col justify-center bg-white/40 dark:bg-transparent">
-          <div className="mb-8">
-            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Selamat Datang</h2>
-            <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Silakan masuk ke akun manajemen UMKM Anda</p>
-          </div>
-
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 ml-1">Email</label>
-              <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors duration-200" size={18} />
-                <input
-                  type="email"
-                  placeholder="nama@bisnis.com"
-                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 focus:border-indigo-500 dark:focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-950 rounded-2xl transition-all duration-200 outline-none ring-0 focus:ring-4 focus:ring-indigo-500/10 text-slate-800 dark:text-white font-medium placeholder:text-slate-400/80"
-                />
-              </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between items-center ml-1">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Password</label>
-                <a href="#" className="text-xs font-bold text-indigo-500 hover:text-indigo-600 transition-colors">Lupa Password?</a>
+            <div className="relative z-10 mt-12">
+              <div className="bg-slate-900/50 backdrop-blur-md p-5 rounded-2xl border border-white/5 inline-block shadow-lg max-w-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#25D366] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#25D366]"></span>
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400 tracking-widest">SYSTEM STATUS</span>
+                </div>
+                <p className="text-sm font-medium text-slate-200">
+                  RAG Database & WhatsApp Instance berjalan optimal.
+                </p>
               </div>
-              <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors duration-200" size={18} />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
-                  className="w-full pl-12 pr-12 py-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 focus:border-indigo-500 dark:focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-950 rounded-2xl transition-all duration-200 outline-none ring-0 focus:ring-4 focus:ring-indigo-500/10 text-slate-800 dark:text-white font-medium placeholder:text-slate-400/80"
-                />
+            </div>
+          </div>
+
+          {/* Right Side: Sleek Dark Form */}
+          <div className="p-8 sm:p-12 md:p-16 flex flex-col justify-center bg-[#0f172a]/40 backdrop-blur-sm z-10">
+            <div className="mb-10">
+              <h2 className="text-3xl font-extrabold text-white tracking-tight">Portal Admin</h2>
+              <p className="text-slate-400 mt-2 font-light tracking-wide">Silakan masuk ke akun VOGUEHUB Anda.</p>
+            </div>
+
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {/* Email Input */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Email / ID Akses</label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-white transition-colors duration-200" size={18} />
+                  <input
+                    type="email"
+                    placeholder="admin@voguehub.com"
+                    onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                    className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-700/50 focus:border-white focus:bg-slate-800/80 rounded-xl transition-all duration-300 outline-none ring-0 text-white font-medium placeholder:text-slate-600"
+                  />
+                </div>
+              </div>
+
+              {/* Password Input */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center ml-1">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Kata Sandi</label>
+                  <a href="#" className="text-xs font-medium text-slate-400 hover:text-white transition-colors">Lupa Akses?</a>
+                </div>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-white transition-colors duration-200" size={18} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+                    className="w-full pl-12 pr-12 py-4 bg-slate-900/50 border border-slate-700/50 focus:border-white focus:bg-slate-800/80 rounded-xl transition-all duration-300 outline-none ring-0 text-white font-medium placeholder:text-slate-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <div className="pt-4">
                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                  disabled={loading}
+                  className="w-full bg-white hover:bg-slate-200 text-slate-900 font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all duration-300 flex items-center justify-center gap-2 group transform active:scale-[0.98]"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {loading ? (
+                    <span className="animate-pulse">Mengautentikasi...</span>
+                  ) : (
+                    <>
+                      Masuk Sistem
+                      <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-200" />
+                    </>
+                  )}
                 </button>
               </div>
-            </div>
+            </form>
 
-            <div className="pt-2">
-              <button className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all duration-300 flex items-center justify-center gap-2 group transform active:scale-[0.98]">
-                <Loading loading={loading}>
-                  Masuk Sekarang
-                </Loading>
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-200" />
-              </button>
+            {/* Footer */}
+            <div className="mt-10 text-center border-t border-white/5 pt-6">
+              <p className="text-xs text-slate-500 font-mono">
+                Secured by EvolveWA Engine &middot; V 1.0.0
+              </p>
             </div>
-          </form>
-
-          {/* Footer text replacement for dead spacing code */}
-          <div className="mt-8 text-center">
-            <p className="text-xs text-slate-400 dark:text-slate-500">
-              Menggunakan enkripsi end-to-end teramankan oleh EvolveWA Platform.
-            </p>
           </div>
         </div>
       </div>
