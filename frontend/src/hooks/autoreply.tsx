@@ -19,6 +19,7 @@ export default function useAutoreply() {
         aiPrompt: null,
         replyContent: null,
         isActive: true,
+        file: null,
     })
     const itemsPerPage = 7;
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -59,6 +60,7 @@ export default function useAutoreply() {
             aiPrompt: autoreply.aiPrompt,
             replyContent: autoreply.replyContent,
             isActive: autoreply.isActive,
+            file: null,
         })
     };
 
@@ -71,6 +73,7 @@ export default function useAutoreply() {
             aiPrompt: null,
             replyContent: null,
             isActive: true,
+            file: null,
         })
     }
 
