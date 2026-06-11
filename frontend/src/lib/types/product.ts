@@ -16,7 +16,7 @@ export interface CreateProduct {
   name: string;
   price: number;
   stock: number;
-  description: string;
+  description: string | null;
   file: null | File;
-  imageUrl: string;
+  imageUrl: string | null;
 }

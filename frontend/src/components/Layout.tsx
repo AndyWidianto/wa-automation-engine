@@ -10,6 +10,7 @@ import {
   Sparkles,
   Bot,
   Box,
+  ShoppingBag,
 } from "lucide-react";
 import MotionModal from './Motion';
 import ChatModal from './ChatModal';
@@ -19,6 +20,8 @@ import { useAuthStore } from '../lib/store/authStore';
 import useChatbot from '../hooks/chatbot';
 import { toast } from 'sonner';
 import useAxios from '../lib/axios.service';
+import { useQuery } from '@tanstack/react-query';
+import type { OrderStats } from '../lib/types';
 
 
 interface IncomeMessage {
@@ -38,6 +41,55 @@ export default function Layout() {
   const [isOpenChat, setIsOpenChat] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [incomeMessage, setIncomeMessage] = useState<IncomeMessage | null>(null);
+  const { messages, setMessage, message, handleChatbot, loading } = useChatbot({ sessionId: sessionId || "" });
+  const navigate = useNavigate();
+  const toggleSidebar = () => {
+    setOpenSidebar(!openSidebar);
+  }
+  const handleClose = () => {
+    setIsOpenChat(false);
+    setIncomeMessage(null);
+  }
+
+  const setRandomId = () => {
+    const id = crypto.randomUUID();
+    setSessionId(id);
+  };
+  const handleLogout = async () => {
+    if (!confirm("Apakah anda yakin ingin logout?")) return;
+    try {
+      await axiosPrivate.post("/logout");
+      localStorage.removeItem("accessToken");
+      navigate("/login");
+      toast.success("Berhasil logout", {
+        style: {
+          borderRadius: '12px',
+          background: '#1e293b',
+          color: '#fff',
+        },
+      });
+      logout();
+    } catch (err: any) {
+      console.error("Logout Error:", err);
+      navigate("/login");
+    }
+  };
+
+  const handleFetchStatOrder = async () => {
+    try {
+      const res = await axiosPrivate.get("/orders/stats");
+      const data: OrderStats = res.data;
+      console.log(data);
+      return data;
+    } catch (err) {
+      console.log("Fetch Error: ", err);
+    }
+  }
+  const { data: orderStats } = useQuery({
+    queryKey: ["orderStats"],
+    queryFn: handleFetchStatOrder,
+    staleTime: 10 * 60 * 1000,
+  })
   const sidebars = [
     {
       id: 1,
@@ -47,7 +99,23 @@ export default function Layout() {
       icon: <LayoutDashboard size={20} />,
       path: '/dashboard'
     },
-
+    {
+      id: 129499032,
+      type: "single",
+      label: 'Confirm Orders',
+      totalUnread: orderStats?.totalPending || null,
+      description: 'Overview statistik dan aktivitas sistem',
+      icon: <ShoppingBag size={20} />,
+      path: '/dashboard/confirm/orders'
+    },
+    {
+      id: 325232,
+      type: "single",
+      label: 'Order',
+      description: 'Kelola pemesanan',
+      icon: <Box size={20} />,
+      path: '/dashboard/orders'
+    },
     {
       id: 2,
       type: "group",
@@ -142,7 +210,6 @@ export default function Layout() {
         },
       ]
     },
-
     {
       id: 8,
       type: "single",
@@ -152,39 +219,6 @@ export default function Layout() {
       path: '/dashboard/settings'
     }
   ];
-  const { messages, setMessage, message, handleChatbot, loading } = useChatbot({ sessionId: sessionId || "" });
-  const navigate = useNavigate();
-  const toggleSidebar = () => {
-    setOpenSidebar(!openSidebar);
-  }
-  const handleClose = () => {
-    setIsOpenChat(false);
-    setIncomeMessage(null);
-  }
-
-  const setRandomId = () => {
-    const id = crypto.randomUUID();
-    setSessionId(id);
-  };
-  const handleLogout = async () => {
-    if (!confirm("Apakah anda yakin ingin logout?")) return;
-    try {
-      await axiosPrivate.post("/logout");
-      localStorage.removeItem("accessToken");
-      navigate("/login");
-      toast.success("Berhasil logout", {
-        style: {
-          borderRadius: '12px',
-          background: '#1e293b',
-          color: '#fff',
-        },
-      });
-      logout();
-    } catch (err: any) {
-      console.error("Logout Error:", err);
-      navigate("/login");
-    }
-  };
   useEffect(() => {
     setRandomId();
     // socket.on("connect", () => {

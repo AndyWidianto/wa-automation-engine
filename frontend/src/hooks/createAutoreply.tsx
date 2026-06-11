@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import useAxios from "../lib/axios.service";
 import type { CreateAutoreply } from "../lib/types";
 import { toast } from "sonner";
@@ -12,7 +12,16 @@ export default function useCreateAutoreply() {
         aiPrompt: null,
         replyContent: null,
         isActive: true,
+        file: null,
     })
+    const fileRef = useRef<HTMLInputElement | null>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>)  => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setFormData(prev => ({...prev, file: file }));
+        }
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,6 +62,8 @@ export default function useCreateAutoreply() {
         handleSubmit,
         loading,
         formData,
-        setFormData
+        setFormData,
+        handleFileChange,
+        fileRef
     }
 }

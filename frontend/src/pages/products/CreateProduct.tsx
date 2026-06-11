@@ -56,7 +56,7 @@ export default function CreateProduct() {
             <Textarea
               title="Deskripsi Produk" 
               rows={5} 
-              value={formData.description} 
+              value={formData.description || ""} 
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} 
               icon={FileText} 
               placeholder="Jelaskan detail produk, variasi rasa, atau komposisi di sini..." 

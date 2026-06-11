@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { ShoppingBag, ChevronRight, MessageCircle, Sparkles, LogIn } from 'lucide-react';
 import useAxios from '../lib/axios.service';
 import { Link } from 'react-router';
+import { useAuthStore } from '../lib/store/authStore';
 
 export default function FashionLandingPage() {
   const { axiosPrivate } = useAxios();
+  const { accessToken } = useAuthStore();
   const [waBotLink, setWaBotLink] = useState<string | null>(null);
 
   const fetchDevices = async () => {
@@ -57,14 +59,19 @@ export default function FashionLandingPage() {
             <MessageCircle size={16} className="text-emerald-500" />
             Chat AI Bot
           </a>
-          <Link
+          {!accessToken ? <Link
             to="/login"
             rel="noopener noreferrer"
             className="px-6 py-2.5 rounded-full text-sm font-bold transition-all transform hover:-translate-y-0.5 uppercase tracking-wide flex items-center gap-2"
           >
             <LogIn size={16} className="text-emerald-500" />
             Log In
-          </Link>
+          </Link> : <Link
+            to="/dashboard"
+            className="px-6 py-2.5 rounded-full text-sm font-bold transition-all transform hover:-translate-y-0.5 uppercase tracking-wide flex items-center gap-2"
+          >
+            Dashboard
+          </Link>}
         </div>
       </nav>
 

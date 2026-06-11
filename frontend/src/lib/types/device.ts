@@ -1,11 +1,11 @@
 
 export interface Device {
+    number: string | null;
     id: string;
     name: string;
-    number: string;
     createdAt: string;
     updatedAt: string;
-    status: string;
     instanceName: string;
-    integration: string;
+    status: "connected" | "disconnected" | "connecting";
+    integration: string | null;
 }

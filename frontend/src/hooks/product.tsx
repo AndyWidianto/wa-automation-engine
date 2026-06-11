@@ -14,6 +14,7 @@ export default function useProduct() {
     const [searchTerm, setSearchTerm] = useState("");
     const [selected, setSelected] = useState<Product | null>(null);
     const [isOpen, setIsOpen] = useState(false);
+    const [loadingUpdate, setLoadingUpdate] = useState(false);
     const [formData, setFormData] = useState<CreateProduct>({
         name: '',
         price: 0,
@@ -70,28 +71,30 @@ export default function useProduct() {
         setCurrentPage(prev => prev - 1);
     }
 
-    const handleUpdate = (autoreply: Product) => {
-        setSelected(autoreply);
+    const handleUpdate = (product: Product) => {
+        setSelected(product);
         setIsOpen(true);
-        // setFormData({
-        //     name: autoreply.name,
-        //     type: autoreply.type,
-        //     aiPrompt: autoreply.aiPrompt,
-        //     replyContent: autoreply.replyContent,
-        //     isActive: autoreply.isActive,
-        // })
+        setFormData({
+            name: product.name,
+            price: product.price,
+            stock: product.stock,
+            description: product.description,
+            imageUrl: product.imageUrl,
+            file: null
+        })
     };
 
     const handleClose = () => {
         setSelected(null);
         setIsOpen(false);
-        // setFormData({
-        //     name: "",
-        //     type: "keyword",
-        //     aiPrompt: null,
-        //     replyContent: null,
-        //     isActive: true,
-        // })
+        setFormData({
+            name: "",
+            price: 0,
+            stock: 0,
+            description: "",
+            imageUrl: "",
+            file: null
+        })
     }
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -135,6 +138,38 @@ export default function useProduct() {
         }
     }
 
+    const handleUpdateProduct = async (e: React.SubmitEvent) => {
+        e.preventDefault();
+        if (!selected) return;
+        setLoadingUpdate(true);
+        try {
+            const dataToSend = new FormData();
+            if (formData.file) {
+                dataToSend.append("file", formData.file);
+            }
+            dataToSend.append("name", formData.name);
+            dataToSend.append("description", formData.description || "");
+            dataToSend.append("price", String(formData.price));
+            dataToSend.append("stock", String(formData.stock));
+            const res = await axiosPrivate.patch(`/products/${selected?.id}`, dataToSend);
+            setProducts(prev => prev.map(p => p.id === selected.id ? ({ ...res.data }) : p));
+            toast.success("Updated sucessfully");
+        } catch (err: any) {
+            const errorMessage = err.response?.data?.message || "Gagal update product";
+            toast.error(errorMessage, {
+                duration: 4000,
+                position: 'top-right',
+                style: {
+                    borderRadius: '12px',
+                    background: '#1e293b',
+                    color: '#fff',
+                },
+            });
+        } finally {
+            setLoadingUpdate(false);
+        }
+    }
+
     useEffect(() => {
         fetchProducts();
     }, [searchTerm]);
@@ -161,6 +196,8 @@ export default function useProduct() {
         handleFileChange,
         formData,
         setFormData,
-        handleDelete
+        handleDelete,
+        loadingUpdate,
+        handleUpdateProduct
     }
 }

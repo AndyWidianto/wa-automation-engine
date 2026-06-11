@@ -1,12 +1,12 @@
 // import { useRef } from 'react';
-import { Tag, MessageSquare, CheckCheck, BotMessageSquare } from 'lucide-react';
+import { Tag, MessageSquare, CheckCheck, BotMessageSquare, Paperclip } from 'lucide-react';
 import { ButtonPrimary } from '../../components/Buttons';
 import { Input, Select, Textarea } from '../../components/Inputs';
 import useCreateAutoreply from '../../hooks/createAutoreply';
 
 const CreateAutoReply = () => {
   // const refFileInput = useRef<HTMLInputElement | null>(null);
-  const { setFormData, formData, handleSubmit } = useCreateAutoreply();
+  const { setFormData, formData, handleSubmit, handleFileChange, fileRef } = useCreateAutoreply();
 
   return (
     <div className="p-6 dark:bg-gray-50 dark:bg-slate-900 min-h-screen transition-colors">
@@ -27,18 +27,18 @@ const CreateAutoReply = () => {
             {formData.type === 'keyword' ? (
               <>
                 <Textarea title='Content' value='' rows={6} placeholder='Selamat siang....' onChange={(e) => setFormData(prev => ({ ...prev, replyContent: e.target.value }))} icon={MessageSquare} />
-                {/* <div>
+                <div>
                   <label className="block text-sm font-medium mb-1.5 dark:text-gray-300">Lampiran (Opsional)</label>
                   <div className="flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-border hover:bg-gray-100 dark:hover:bg-slate-700">
+                    <label onClick={() => fileRef.current?.click()} className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-border hover:bg-gray-100 dark:hover:bg-slate-700">
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
                         <Paperclip className="w-8 h-8 mb-3 text-gray-400" />
                         <p className="text-xs text-gray-500 dark:text-gray-400">Klik untuk upload file</p>
                       </div>
-                      <input type="file" onChange={handleFileChange} className="hidden" />
+                      <input type="file" ref={fileRef} onChange={handleFileChange} className="hidden" />
                     </label>
                   </div>
-                </div> */}
+                </div>
               </>
             ) : <div>
               <Textarea title='Prompt AI' rows={6} value={formData.aiPrompt || ""} onChange={(e) => setFormData(prev => ({...prev, aiPrompt: e.target.value }))} icon={BotMessageSquare} />

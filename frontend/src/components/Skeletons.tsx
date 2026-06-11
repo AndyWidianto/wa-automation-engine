@@ -49,3 +49,24 @@ export const TdActionSkeleton = () => (
     </div>
   </td>
 )
+
+// Skeleton untuk Kolom Order ID
+export const TdIdSkeleton = () => (
+  <td className="px-6 py-4">
+    <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-28"></div>
+  </td>
+);
+
+// Skeleton untuk Kolom Tanggal (Date)
+export const TdDateSkeleton = () => (
+  <td className="px-6 py-4">
+    <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-36"></div>
+  </td>
+);
+
+// Skeleton untuk Kolom Total Harga (Price)
+export const TdPriceSkeleton = () => (
+  <td className="px-6 py-4">
+    <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-24"></div>
+  </td>
+);

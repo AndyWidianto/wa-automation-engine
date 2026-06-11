@@ -23,13 +23,14 @@ export default function Products() {
     formData,
     setFormData,
     handleDelete,
-    handleSearch
+    handleSearch,
+    handleUpdateProduct
   } = useProduct();
 
   return (
     <div className="md:p-8 min-h-screen dark:bg-background dark:text-white">
       <MotionModal onClose={handleClose} isOpen={isOpen}>
-        <form onSubmit={() => { }} className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200/60 dark:border-slate-800/80 space-y-6">
+        <form onSubmit={handleUpdateProduct} className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200/60 dark:border-slate-800/80 space-y-6">
           <div>
             <h2 className="text-2xl font-extrabold dark:text-white tracking-tight">Update Produk</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Masukkan detail produk UMKM untuk diintegrasikan ke sistem AI Chatbot.</p>
@@ -67,7 +68,7 @@ export default function Products() {
             <Textarea
               title="Deskripsi Produk"
               rows={5}
-              value={formData.description}
+              value={formData.description || ""}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               icon={FileText}
               placeholder="Jelaskan detail produk, variasi rasa, atau komposisi di sini..."

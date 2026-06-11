@@ -19,6 +19,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import Products from './pages/products/Product'
 import CreateProduct from './pages/products/CreateProduct'
+import OrderTable from './pages/Orders'
+import OrderDashboard from './pages/ConfirmOrder'
 
 
 export default function App() {
@@ -30,10 +32,12 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
           <Routes>
             <Route path="/" element={<Home />} />
+             <Route path="/dashboard/confirm/orders" element={<OrderDashboard />} />
             <Route path="/dashboard" element={<Authorization><Layout /></Authorization>}>
               <Route index element={<Dashboard />} />
               <Route path="products" element={<Products />} />
               <Route path="products/create" element={<CreateProduct />} />
+              <Route path="orders" element={<OrderTable />} />
               <Route path="autoreply" element={<AutoReply />} />
               <Route path="autoreply/create" element={<CreateAutoReply />} />
               <Route path="broadcasts" element={<Broadcast />} />

@@ -19,4 +19,5 @@ export interface CreateAutoreply {
     // triggerKeyword: string | null;
     replyContent: string | null;
     aiPrompt: string | null;
+    file: File | null;
 }
