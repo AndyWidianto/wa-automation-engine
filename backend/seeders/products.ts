@@ -1,22 +1,55 @@
-import { OllamaService } from '@/lib/ollama/ollama.service';
 import { Prisma, PrismaClient } from '@prisma/client';
 import path from 'path';
 import * as XLSX from 'xlsx';
 import { v4 as uuid } from "uuid";
-
-const prisma = new PrismaClient();
-const ollama = new OllamaService();
-
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface ExcelProductRow {
     'ID Produk'?: string | number;
     'Nama Produk': string;
     'Harga': number;
     'Stok': number;
-    'Deskripsi Produk'?: string;
+    'Deskripsi': string;
+    'Url Image': string;
+}
+
+const modelsEmbedding = [
+    process.env.MODEL_EMBEDDING_PRIMARY || "bge-m3",
+    process.env.MODEL_EMBEDDING_SECONDARY || "gemini-embedding-001",
+    process.env.MODEL_EMBEDDING_TERTIARY!
+];
+
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+async function embeddings(text: string) {
+    // const response = await this.ollama.embeddings({
+    //     model: 'bge-m3',
+    //     prompt: text,
+    // });
+
+    // const embedding = response.embedding;
+    // return embedding;
+    for (const modelName of modelsEmbedding) {
+        try {
+            const model = genAI.getGenerativeModel({ model: modelName });
+            const result = await model.embedContent({
+                content: {
+                    parts: [{ text: text }]
+                },
+                outputDimensionality: 1024,
+            } as any);
+
+            const embedding = result.embedding;
+            return embedding.values;
+        } catch (err) {
+            console.error(`Gagal mendapatkan embedding dari model ${modelName}:`, err);
+        }
+    }
+    throw new Error("Gagal mendapatkan embedding dari semua model yang tersedia.");
 }
 
 export async function seedProducts() {
+    const prisma = new PrismaClient();
     try {
         const productsFilePath = path.join(__dirname, '../public/data_dummy_products.xlsx');
         const workbook = XLSX.readFile(productsFilePath);
@@ -24,16 +57,16 @@ export async function seedProducts() {
         const worksheet = workbook.Sheets[sheetName];
         const rawData = XLSX.utils.sheet_to_json<ExcelProductRow>(worksheet);
 
-        let chunks: string[] = [];
-        const allRows = workbook.SheetNames.flatMap(sheetName => {
-            return XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-        });
+        let dataToEmbedding: { content: string, imageUrl: string | null }[] = [];
 
-        if (allRows.length > 0) {
-            chunks = allRows.map((row: any) => {
-                return `id: ${uuid()}, ${Object.entries(row)
-                    .map(([key, val]) => `${key}: ${val}`)
-                    .join(", ")}`;
+        if (rawData.length > 0) {
+            dataToEmbedding = rawData.map((row) => {
+                return {
+                    content: `id: ${uuid()}, ${Object.entries(row)
+                        .map(([key, val]) => `${key}: ${val}`)
+                        .join(", ")}`,
+                    imageUrl: row["Url Image"]
+                }
             });
         }
 
@@ -47,7 +80,8 @@ export async function seedProducts() {
                 name: row['Nama Produk'],
                 price: Number(row['Harga']) || 0,
                 stock: Number(row['Stok']) || 0,
-                description: row['Deskripsi Produk'] || '',
+                description: row['Deskripsi'] || '',
+                imageUrl: row['Url Image']
             };
         });
 
@@ -59,23 +93,23 @@ export async function seedProducts() {
         });
 
         const batchSize = 100;
-        const chunkData: { content: string; vector: string }[] = [];
-        const knowledgeIds = chunks.map(_c => uuid());
-        for (let i = 0; i < chunks.length; i += batchSize) {
-            const batch = chunks.slice(i, i + batchSize);
+        const chunkData: { content: string; vector: string, imageUrl: string | null }[] = [];
+        for (let i = 0; i < dataToEmbedding.length; i += batchSize) {
+            const batch = dataToEmbedding.slice(i, i + batchSize);
 
             console.log(`Memproses batch ${Math.floor(i / batchSize) + 1}...`);
 
             const results = await Promise.all(batch.map(async (chunk) => {
-                const vector = await ollama.embeddings(chunk);
+                const vector = await embeddings(chunk.content);
                 return {
-                    content: chunk,
-                    vector: `[${vector.join(',')}]`
+                    content: chunk.content,
+                    vector: `[${vector.join(',')}]`,
+                    imageUrl: chunk.imageUrl
                 };
             }));
 
             chunkData.push(...results);
-            if (i + batchSize < chunks.length) {
+            if (i + batchSize < dataToEmbedding.length) {
                 console.log("Limit batch tercapai. Menunggu 60 detik agar tidak 429...");
             }
         }
@@ -86,6 +120,7 @@ export async function seedProducts() {
                         ${"Product"},
                         ${d.content}, 
                         ${d.vector}::vector, 
+                        ${d.imageUrl},
                         now(), 
                         now()
                     )`;
@@ -97,6 +132,7 @@ export async function seedProducts() {
                         "name",
                         "content", 
                         "embedding", 
+                        "imageUrl",
                         "created_at", 
                         "updated_at"
                     ) 

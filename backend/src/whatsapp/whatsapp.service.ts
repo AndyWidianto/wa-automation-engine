@@ -10,6 +10,7 @@ import path from 'path';
 import { PrismaService } from "@/lib/prisma/prisma.service";
 import { EmailService } from "@/lib/email/email.service";
 import { OrderClient } from "@/lib/types";
+import axios from "axios";
 
 
 @Injectable()
@@ -54,10 +55,17 @@ export class WhatsappService implements OnModuleInit {
             }
             if (connection === 'open') {
                 this.logger.log(`🚀 [${instanceName}] Berhasil terhubung! Menghapus data QR dari memori.`);
+
+                // delete cache qr code
                 delete RAM_CACHE_QR_CODE[`${instanceName}-qrcode`];
-                console.log("User: ", sock.user);
+
+
                 const phoneNumber = sock.user?.phoneNumber || jidNormalizedUser(sock.user?.id).split("@")[0];
+
+                // update connection
                 await this.webhook.updateConnection(instanceName, 'connected', phoneNumber);
+
+                // mencari pesan belum terkirim
                 const pendingMessages = this.messageQueue.get(instanceName) || [];
                 for (const { to, text } of pendingMessages) {
                     await this.sendMessage(instanceName, to, text);
@@ -95,25 +103,35 @@ export class WhatsappService implements OnModuleInit {
 
             for (const msg of m.messages) {
                 if (msg.key.remoteJid === 'status@broadcast') return;
-                const message = msg?.message?.conversation || msg?.message?.extendedTextMessage?.text || msg?.message?.imageMessage?.caption || "";
-                const remoteJid = msg.key.remoteJidAlt || msg.key.participant || "";
-                const res = await this.webhook.autoreply(remoteJid, message);
-                const orderRegex = /<order_data>([\s\S]*?)<\/order_data>/;
-                const match = res.message?.match(orderRegex);
-                if (match) {
-                    try {
-                        const jsonString = match[1].trim();
-                        const orderData: OrderClient = JSON.parse(jsonString);
-                        if (orderData.isOrderValid) {
-                            this.logger.log(`📥 Orderan Baru Masuk dari ${orderData.customerName}! Menyiapkan Email...`);
-                            await this.email.sendOrderEmail(orderData);
+                if (!msg.key.fromMe) {
+                    const message = msg?.message?.conversation || msg?.message?.extendedTextMessage?.text || msg?.message?.imageMessage?.caption || "";
+                    const remoteJid = msg.key.remoteJidAlt || msg.key.participant || "";
+                    const res = await this.webhook.autoreply(remoteJid, message);
+                    const orderRegex = /<order_data>([\s\S]*?)<\/order_data>/;
+                    const match = res.message?.match(orderRegex);
+                    if (match) {
+                        try {
+                            const jsonString = match[1].trim();
+                            const orderData: OrderClient = JSON.parse(jsonString);
+                            if (orderData.isOrderValid) {
+                                this.logger.log(`📥 Orderan Baru Masuk dari ${orderData.customerName}! Menyiapkan Email...`);
+                                await this.email.sendOrderEmail(orderData, remoteJid);
+                            }
+                        } catch (error) {
+                            this.logger.error("Gagal memproses JSON order dari AI", error);
                         }
-                    } catch (error) {
-                        this.logger.error("Gagal memproses JSON order dari AI", error);
+                        res.message = res.message?.replace(orderRegex, '').trim();
                     }
-                    res.message = res.message?.replace(orderRegex, '').trim();
+                    if (res.data && res.data.length > 0) {
+                        console.log(res.data);
+                        for (const item of res.data) {
+                            if (item.imageUrl && item.similarity > 0.70) {
+                                await this.sendMedia(instanceName, remoteJid, item.imageUrl);
+                            }
+                        }
+                    }
+                    await this.sendMessage(instanceName, remoteJid, res.message || "");
                 }
-                await this.sendMessage(instanceName, remoteJid, res.message || ""); // Kirim balasan ke WhatsApp
             }
         });
         // sock.ev.on('messages.update', async (m) => {
@@ -152,45 +170,28 @@ export class WhatsappService implements OnModuleInit {
         }
     }
 
-    async sendMedia(
-        instanceName: string,
-        to: string,
-        mediaType: 'image' | 'video' | 'document' | 'audio',
-        mediaSource: string | Buffer, // Bisa berupa URL string atau Buffer file
-        mimetype: string,            // Opsional untuk dokumen (misal: "application/pdf")
-        caption: string,             // Opsional untuk gambar/video
-        fileName?: string             // Opsional untuk dokumen (misal: "tugas.pdf")
-    ) {
+    async sendMedia(instanceName: string, to: string, imageUrl: string, caption?: string): Promise<void> {
         const sock = this.mapping.get(instanceName);
-        if (!sock) {
-            throw new Error(`Instance [${instanceName}] tidak aktif.`);
-        }
+        if (!sock) throw new NotFoundException(`Instance [${instanceName}] tidak aktif.`);
+
         const formattedPhone = to.includes('@s.whatsapp.net') ? to : `${to}@s.whatsapp.net`;
-        const mediaPayload = typeof mediaSource === 'string' ? { url: mediaSource } : mediaSource;
 
         try {
-            let messageOptions: any = {};
-            if (mediaType === 'image') {
-                messageOptions = { image: mediaPayload, caption: caption };
-            }
-            else if (mediaType === 'video') {
-                messageOptions = { video: mediaPayload, caption: caption };
-            }
-            else if (mediaType === 'audio') {
-                messageOptions = { audio: mediaPayload, ptt: false }; // ptt: true jika ingin jadi VN (Voice Note)
-            }
-            else if (mediaType === 'document') {
-                messageOptions = {
-                    document: mediaPayload,
-                    mimetype: mimetype || 'application/pdf',
-                    fileName: fileName || 'Document.pdf'
-                };
-            }
-            await sock.sendMessage(formattedPhone, messageOptions);
-            this.logger.log(`[${instanceName}] Berhasil mengirim media (${mediaType}) ke ${to}`);
+            const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+            const buffer = Buffer.from(response.data, 'binary');
+
+            await sock.sendMessage(formattedPhone, {
+                image: buffer,
+                mimetype: 'image/jpeg',
+                caption: caption, // Opsional
+                contextInfo: {
+                    forwardingScore: 1,
+                    isForwarded: false
+                }
+            });
+
         } catch (error) {
-            this.logger.error(`[${instanceName}] Gagal mengirim media ke ${to}`, error);
-            throw error;
+            this.logger.error(`Gagal mengirim media ke ${to}`, error);
         }
     }
 

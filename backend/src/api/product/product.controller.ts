@@ -22,13 +22,14 @@ export class ProductController {
     @UseInterceptors(FileInterceptor("file"))
     @UseGuards(AuthGuard("jwt"))
     async create(@Body() body: CreateProductDto, @UploadedFile("file") file?: Express.Multer.File) {
-        return this.service.create(body);
+        return this.service.create(body, file);
     }
 
     @Patch(":id")
     @UseGuards(AuthGuard("jwt"))
-    async update(@Param("id") id: string, @Body() body: UpdateProductDto) {
-        return this.service.update(id, body);
+    @UseInterceptors(FileInterceptor("file"))
+    async update(@Param("id") id: string, @Body() body: UpdateProductDto, @UploadedFile("file") file: Express.Multer.File) {
+        return this.service.update(id, body, file);
     }
 
     @Delete(":id")

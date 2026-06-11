@@ -1,13 +1,15 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../lib/prisma/prisma.service";
-import { OllamaService } from "../../lib/ollama/ollama.service";
+import { AIService } from "../../lib/ai/aiservice";
 import { Autoreply } from "@prisma/client";
 
 
 
-interface KnowledgeChunk {
+export interface KnowledgeChunk {
     content: string;
+    imageUrl: string | null;
     similarity: number;
+    name: string;
 }
 
 @Injectable()
@@ -15,7 +17,7 @@ export class ChatbotService {
     private mappingAutoreply = new Map<string, Autoreply[]>();
     constructor(
         private prisma: PrismaService,
-        private ollama: OllamaService,
+        private ollama: AIService,
     ) { }
 
     async chatbot(data: { id: string, message: string }) {
@@ -43,12 +45,13 @@ export class ChatbotService {
         const vectorString = `[${userVector.join(',')}]`;
 
         const contextChunks = await this.prisma.$queryRaw<KnowledgeChunk[]>`
-        SELECT content, 1 - (embedding <=> ${vectorString}::vector) AS similarity
+        SELECT content, "imageUrl", "name",  1 - (embedding <=> ${vectorString}::vector) AS similarity
         FROM knowledges
-        WHERE 1 - (embedding <=> ${vectorString}::vector) > 0.5
+        WHERE 1 - (embedding <=> ${vectorString}::vector) > 0.6
         ORDER BY similarity DESC
         LIMIT 3
         `;
+        console.log(contextChunks);
         const contextText = contextChunks.map(c => c.content).join('\n\n');
         const systemRules = `
         ${rawAutoreply?.map(raw => `${raw.aiPrompt} \n`) || 'Asisten...'}
@@ -63,18 +66,21 @@ export class ChatbotService {
         {
         "isOrderValid": true,
         "customerName": "Nama user",
-        "phone": "Nomor HP user",
         "address": "Alamat lengkap user",
         "totalPrice": 225000,
         "items": [
             {
                 "id": "product1",
                 "price": 140000,
+                "nameProduct": "celana x",
+                "imageUrl": "https://...",
                 "quantity": 2,
             },
             {
                 "id": "product2",
                 "price": 100000,
+                "nameProduct": "celana y",
+                "imageUrl": "https://...",
                 "quantity": 2,
             }
         ]
@@ -106,7 +112,7 @@ export class ChatbotService {
         return {
             answer: response,
             confidence: contextChunks[0]?.similarity,
-            sources: contextChunks.map(c => c.content.substring(0, 50) + "...")
+            sources: contextChunks
         };
     }
 
@@ -117,7 +123,8 @@ export class ChatbotService {
                     contains: message,
                     mode: "insensitive"
                 },
-                type: "keyword"
+                type: "keyword",
+                isActive: true,
             }
         });
 

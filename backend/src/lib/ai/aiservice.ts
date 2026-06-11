@@ -10,7 +10,7 @@ interface HistoryChatbot {
 }
 
 @Injectable()
-export class OllamaService implements OnModuleInit {
+export class AIService implements OnModuleInit {
     private genAI: GoogleGenerativeAI;
     private historyChatbot: HistoryChatbot[] = [];
     private ollama = new Ollama({ host: process.env.BASE_URL_OLLAMA || "http://127.0.0.1:11434" });
@@ -149,10 +149,15 @@ export class OllamaService implements OnModuleInit {
                         {
                             role: "user",
                             parts: [{
-                                text: `Tugas kamu adalah mengekstrak inti sari dan kata kunci dari pesan warga desa untuk pencarian dokumen (RAG). 
-                        Hilangkan kata-kata basa-basi, singkatan tidak baku, dan emosi. 
-                        Ubah menjadi kalimat tanya atau pernyataan yang padat informasi dan mengandung kata kunci administratif yang relevan.`
-                            }],
+                                    text: `Tugas kamu adalah menulis ulang (rewrite) pesan dari calon pelanggan menjadi kueri pencarian dokumen (RAG) yang optimal.
+
+                                Aturan ketat yang harus dipatuhi:
+                                1. Normalisasikan singkatan tidak baku atau bahasa gaul menjadi kata baku (contoh: "yg" -> "yang", "blm" -> "belum", "dftr" -> "daftar").
+                                2. Hilangkan semua kata basa-basi (halo, permisi, min), emosi, tanda seru, atau sapaan.
+                                3. Ekstrak inti masalah menjadi satu pernyataan atau kalimat tanya yang padat informasi, serta mengandung kata kunci administratif/formal yang relevan.
+                                4. KHUSUS jika pelanggan berniat membeli/memesan, HANYA cantumkan nama produknya saja.
+                                5. PENTING: Langsung berikan hasil rewrite tanpa ada teks pengantar (seperti "Berikut hasilnya:"), tanpa tanda kutip, dan tanpa penjelasan apa pun.`
+                                }],
                         },
                         {
                             role: "model",

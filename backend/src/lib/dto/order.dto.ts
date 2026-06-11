@@ -15,6 +15,9 @@ export class CreateOrderDto {
 
     @IsOptional()
     status: "pending" | "completed" | "cancelled" | "delivered";
+
+    @IsOptional()
+    details: string;
 }
 
 export class UpdateOrderDto extends PartialType(CreateOrderDto) {

@@ -1,13 +1,13 @@
 import { Module } from "@nestjs/common";
 import { ChatbotService } from "./chatbot.service";
-import { OllamaService } from "../../lib/ollama/ollama.service";
+import { AIService } from "../../lib/ai/aiservice";
 import { ChatbotController } from "./chatbot.controller";
 import { AccessTokenStrategy } from "../../lib/guards/access.strategy";
 
 
 
 @Module({
-    providers: [ChatbotService, OllamaService, AccessTokenStrategy],
+    providers: [ChatbotService, AIService, AccessTokenStrategy],
     controllers: [ChatbotController],
     exports: [ChatbotService]
 })

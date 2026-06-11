@@ -5,6 +5,7 @@ import { PrismaModule } from './lib/prisma/prisma.module';
 import { ApiModule } from './api/api.module';
 import { EventModule } from './event/event.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
+import { StorageModule } from './lib/storage/storage.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { WhatsappModule } from './whatsapp/whatsapp.module';
     ApiModule,
     EventModule,
     WhatsappModule,
+    StorageModule
   ],
   controllers: [AppController],
   providers: [AppService],

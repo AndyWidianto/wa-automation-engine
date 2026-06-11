@@ -16,15 +16,14 @@ export class WebhookService {
     ) { }
 
     async autoreply(remoteJid: string, message: string) {
-        const number = remoteJid.split("@")[0];
-        console.log(`Menerima pesan dari ${number}: ${message}`);
         const existing = await this.prisma.autoreply.findFirst({
             where: {
                 name: {
                     contains: message,
                     mode: "insensitive"
                 },
-                type: "keyword"
+                type: "keyword",
+                isActive: true
             }
         });
 
@@ -40,6 +39,7 @@ export class WebhookService {
             return {
                 success: true,
                 message: parseAIChat,
+                data: chatbot.sources ? chatbot.sources : []
             }
         }
 

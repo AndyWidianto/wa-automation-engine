@@ -13,7 +13,7 @@ export class EmailService {
     constructor(private prisma: PrismaService) {
         this.resend = new Resend(process.env.RESEND_API_KEY || "");
     }
-    async sendOrderEmail(orderData: OrderClient) {
+    async sendOrderEmail(orderData: OrderClient, remoteJid: string) {
         try {
             const formattedPrice = new Intl.NumberFormat('id-ID', {
                 style: 'currency',
@@ -86,9 +86,18 @@ export class EmailService {
                 productId: item.id,
                 quantity: item.quantity
             }));
+            const totalOrder = await this.prisma.order.count();
+            const orderId = `ORDER-${totalOrder >= 100 ? totalOrder : totalOrder >= 10 ? `0${totalOrder}` : `00${totalOrder}`}`
+            const number = remoteJid.split("@")[0];
             await this.prisma.order.create({
                 data: {
+                    id: orderId,
                     totalPrice: orderData.totalPrice,
+                    details: JSON.stringify({
+                        ...orderData,
+                        phone: number,
+                        remoteJid: remoteJid
+                    }),
                     orderItems: {
                         create: dataToSave
                     }
@@ -103,12 +112,10 @@ export class EmailService {
                 subject: "Notifikasi Orderan Baru - UMKM HUB",
                 html: htmlContent
             });
-
             if (error) {
                 this.logger.error('Gagal mengirim email lewat Resend:', error);
                 return false;
             }
-
             this.logger.log(`📧 Email berhasil terkirim! ID: ${data.id}`);
             return true;
         } catch (error) {
