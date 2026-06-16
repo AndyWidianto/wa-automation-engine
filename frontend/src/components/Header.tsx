@@ -1,17 +1,16 @@
 import {
     Search, Bell,
     Menu, Sun, Moon,
-    X,
     Settings,
     LogOut
 } from "lucide-react";
 import { useContext } from "react";
 import { ThemeContext } from "../ThemeProvider";
 import { Link, NavLink } from "react-router";
-import { Accordion } from "./Animate";
 import useHeaderHook from "../hooks/HeaderHook";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
+import GlobalSearch from "./SearchGlobal";
 
 
 
@@ -39,36 +38,13 @@ export default function Header({ handleToggleSidebar, headerContent, logout }: H
         isOpenProfile,
         setIsOpenProfile,
         refNotification,
-        setSearchTerm,
         getGreeting,
         user,
         refProfile } = useHeaderHook();
 
     return (
         <>
-            {showSearch && (
-                <div className="fixed w-full h-screen left-0 right-0 top-0 bg-gray-800/80 p-4 z-55"></div>
-            )}
-            <Accordion isOpen={showSearch}>
-                <div className="fixed top-10 md:top-17 w-[100%] lg:w-[calc(100%-15rem)] right-0 z-60">
-                    <div className="flex items-center justify-center p-4 w-full mx-auto">
-                        <div className="relative w-2xl">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                            <input
-                                id="input-search"
-                                type="text"
-                                placeholder="Search..."
-                                className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-                        <button onClick={() => setShowSearch(false)} className="block p-2 text-gray-100">
-                            <X size={20} />
-                        </button>
-                    </div>
-
-                </div>
-            </Accordion>
+             <GlobalSearch showSearch={showSearch} setShowSearch={setShowSearch} />
             <header className={`flex items-center mb-8 h-17 fixed top-0 right-0 bg-gray-100 dark:bg-background z-10 p-2 w-full lg:w-[calc(100%-16rem)]`}>
                 <button onClick={() => handleToggleSidebar()} className="text-gray-400 lg:hidden">
                     <Menu size={20} />

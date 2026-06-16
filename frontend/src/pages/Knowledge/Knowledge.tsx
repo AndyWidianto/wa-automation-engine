@@ -1,4 +1,4 @@
-import { Search, Trash2, Edit3, ChevronLeft, ChevronRight, Filter, MessageSquare, Tag } from 'lucide-react';
+import { Search, Trash2, Edit3, ChevronLeft, ChevronRight, MessageSquare, Tag } from 'lucide-react';
 import useKnowledge from '../../hooks/knowledge';
 import MotionModal from '../../components/Motion';
 import FormModal from '../../components/FormModal';
@@ -49,9 +49,9 @@ export default function Knowledge() {
             />
           </div>
 
-          <button className="flex items-center gap-2 bg-gray-100 dark:bg-gray-500 dark:bg-gray-800 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition">
+          {/* <button className="flex items-center gap-2 bg-gray-100 dark:bg-gray-500 dark:bg-gray-800 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition">
             <Filter size={16} /> Filter
-          </button>
+          </button> */}
         </div>
 
         {/* Table Container */}

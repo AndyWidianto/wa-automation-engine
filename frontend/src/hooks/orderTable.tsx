@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Order } from "../lib/types";
+import type { Order, ResponseOrder } from "../lib/types";
 import useAxios from "../lib/axios.service";
 import { toast } from "sonner";
 
@@ -9,22 +9,24 @@ export default function useOrderTable() {
     const { axiosPrivate } = useAxios();
     const [loading, setLoading] = useState(false);
     const [loadingForDelete, setLoadingForDelete] = useState(false);
-    const [totalPages, setTotalPages] = useState(100);
+    const [totalPages, setTotalPages] = useState(0);
     const [orders, setOrders] = useState<Order[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [orderSelected, setOrderSelected] = useState<Order | null>(null);
-    const indexOfLastItem = 10;
-    const indexOfFirstItem = 0;
-    const items: Order[] = orders;
+    const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
-    const currentPage = 1;
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const items: Order[] = orders;
 
     const handleFetchOrders = async () => {
         try {
             const res = await axiosPrivate.get("/orders");
             const data = res.data;
             console.log(data);
-            setOrders(data.orders);
+            setTotalPages(data.totalPages);
+            const newOrders: Order[] = data.orders.map((ord: ResponseOrder) => ({...ord, details: ord.details ? JSON.parse(ord.details) : null }));
+            setOrders(prev => [...prev, ...newOrders]);
         } catch (err) {
             console.error("Fetch Error: ", err);
         }
@@ -53,7 +55,11 @@ export default function useOrderTable() {
         setOrderSelected(null);
     }
     const handlePrev = () => { }
-    const handleNext = () => { }
+    const handleNext = () => {
+        if (currentPage >= totalPages) return;
+        console.log("Berjalanan..");
+        setCurrentPage(p => p + 1);
+    }
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('id-ID', {
@@ -77,6 +83,10 @@ export default function useOrderTable() {
                 return <span className="px-2 py-1 bg-blue-500/10 text-blue-500 rounded-full text-xs font-bold">{status}</span>;
         }
     };
+
+    const updateOrder = async (order: Order) => {
+        setOrders(prev => prev.map(p => p.id === order.id ? ({...order}) : p));
+    }
 
     useEffect(() => {
         handleFetchOrders();
@@ -104,6 +114,7 @@ export default function useOrderTable() {
         getStatusBadge,
         handleDelete,
         loadingForDelete,
-        orders
+        orders,
+        updateOrder
     }
 }

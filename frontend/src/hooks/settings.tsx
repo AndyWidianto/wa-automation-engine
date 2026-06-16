@@ -4,10 +4,12 @@ import { toast } from "sonner";
 import type { Device, Notification } from "../lib/types";
 import { useAuthStore } from "../lib/store/authStore";
 import { useQuery } from "@tanstack/react-query";
+import useSocket from "../lib/socket";
 
 
 export default function useSetting() {
     const { axiosPrivate } = useAxios();
+    const { socket} = useSocket();
     const { user, setUser } = useAuthStore();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -319,6 +321,22 @@ export default function useSetting() {
             })
         }
         fetchDevices();
+
+        socket.on("update_connection_whatsapp", ({ status, instanceName, phoneNumber }) => {
+            console.log("data: ", {
+                instanceName,
+                status,
+                phoneNumber
+            })
+            if (status === "open") {
+                handleClose();
+            }
+            setDevices(prev => prev.map((p) => p.instanceName === instanceName ? ({
+                ...p,
+                status: status === "open" ? "connected" : "disconnected",
+                number: phoneNumber
+            }): p));
+        })
     }, [])
 
     return {

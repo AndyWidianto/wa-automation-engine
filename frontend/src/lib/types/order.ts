@@ -23,7 +23,17 @@ export interface Order {
   status: OrderType;
   createdAt: string;
   updatedAt: string;
+  instanceName: string | null;
   details?: OrderDetails | null;
+}
+
+export interface ResponseOrder {
+  id: string;
+  totalPrice: number;
+  status: OrderType;
+  createdAt: string;
+  updatedAt: string;
+  details: string | null;
 }
 
 export interface OrderStats {

@@ -1,9 +1,10 @@
-import { Search, Trash2, Edit3, ChevronLeft, ChevronRight, Filter, Tag, MessageSquare, ToggleLeft } from 'lucide-react';
+import { Search, Trash2, Edit3, ChevronLeft, ChevronRight, Tag, MessageSquare, ToggleLeft} from 'lucide-react';
 import useAutoreply from '../../hooks/autoreply';
 import MotionModal from '../../components/Motion';
 import FormModal from '../../components/FormModal';
 import { Input, InputCheckbox, Select, Textarea } from '../../components/Inputs';
 import { TdActionSkeleton, TdContentSkeleton, TdNameSkeleton, TdNoSkeleton, TdStatusSkeleton, TdTypeSkeleton, TrSkeleton } from '../../components/Skeletons';
+import TableFilter from '../../components/FilteredAutoreply';
 
 export default function AutoReply() {
   const {
@@ -58,10 +59,7 @@ export default function AutoReply() {
               onChange={(e) => setTimeout(() => setSearchTerm(e.target.value), 500)}
             />
           </div>
-
-          <button className="flex items-center gap-2 bg-gray-100 dark:bg-gray-500 dark:bg-gray-800 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition">
-            <Filter size={16} /> Filter
-          </button>
+          <TableFilter onApplyFilter={() => {}} />
         </div>
 
         {/* Table Container */}

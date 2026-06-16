@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { Order, OrderType } from '../lib/types';
 import useAxios from '../lib/axios.service';
 import Loading from './Loading';
+import { toast } from 'sonner';
 
 
 interface EditProps {
@@ -35,7 +36,16 @@ export default function EditOrderModal({ order, isOpen, onClose, onSave }: EditP
                     phone: customerPhone,
                     address
                 }
-            } : {},
+            } : {
+                details: {
+                    address,
+                    phone: customerPhone,
+                    customerName: customerName,
+                    totalPrice: order.totalPrice,
+                    isOrderValid: true,
+                    items: []
+                }
+            },
             updatedAt: new Date().toISOString()
         };
         try {
@@ -69,6 +79,7 @@ export default function EditOrderModal({ order, isOpen, onClose, onSave }: EditP
                 }
             })
             await axiosPrivate.patch(`/orders/${order.id}`, dataToUpdate);
+            toast.success(`Update ${order.id} Successfully`);
             onSave(updatedOrder);
         } catch (err) {
             console.error("Fetch Error: ", err);
@@ -120,9 +131,9 @@ export default function EditOrderModal({ order, isOpen, onClose, onSave }: EditP
                                 onChange={(e) => setStatus(e.target.value as OrderType)}
                                 className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1f2937] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#6366f1] focus:outline-none transition-all"
                             >
-                                <option value="PENDING">PENDING</option>
-                                <option value="COMPLETED">COMPLETED</option>
-                                <option value="CANCELLED">CANCELLED</option>
+                                <option value="pending">PENDING</option>
+                                <option value="completed">COMPLETED</option>
+                                <option value="cancelled">CANCELLED</option>
                             </select>
                         </div>
 

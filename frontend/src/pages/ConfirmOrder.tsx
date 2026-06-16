@@ -23,7 +23,8 @@ export default function OrderDashboard() {
     activeOrder,
     formatCurrency,
     orderRef,
-    containerOrderRef
+    containerOrderRef,
+    handleNotifToWA
   } = useOrder();
   const navigate = useNavigate();
 
@@ -149,7 +150,7 @@ export default function OrderDashboard() {
                   placeholder="Isi No. Resi..."
                   className="px-3 py-1.5 border border-indigo-200 dark:border-indigo-800 rounded-lg text-xs outline-none bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:border-indigo-600 w-full sm:w-40"
                 />
-                <button className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 shrink-0">
+                <button onClick={handleNotifToWA} className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 shrink-0">
                   Simpan & Notif WA
                 </button>
               </div>
@@ -189,7 +190,7 @@ export default function OrderDashboard() {
 
             <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
               <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                {activeOrder.details && activeOrder.details.items.map((item, idx) => (
+                {activeOrder.details && activeOrder.details.items && activeOrder.details.items.map((item, idx) => (
                   <div key={item.id || idx} className="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors bg-white dark:bg-slate-900">
                     <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 shrink-0">
                       {item.imageUrl ? (

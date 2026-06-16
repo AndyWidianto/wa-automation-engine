@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import useAxios from '../lib/axios.service';
-import type { Order, OrderType } from '../lib/types';
+import type { Order, OrderType, ResponseOrder } from '../lib/types';
+import { toast } from 'sonner';
 
 export default function useOrder() {
     const { axiosPrivate } = useAxios();
@@ -44,11 +45,33 @@ export default function useOrder() {
                 setHasMore(false);
             }
             setNextId(data.orders.length > 0 ? data.orders[data.orders.length - 1].id : null);
-            setOrders(prev => [...prev, ...data.orders]);
+            const newOrders = data.orders.map((ord: ResponseOrder) => ({...ord, details: ord.details ? JSON.parse(ord.details) : null }));
+            console.log(newOrders);
+            setOrders(prev => [...prev, ...newOrders]);
         } catch (err) {
             console.error("Fetch Error: ", err);
         } finally {
             setLoading(false);
+        }
+    }
+
+    const handleNotifToWA = async () => {
+        if (!activeOrder || !activeOrder.details || !activeOrder.details.phone) return;
+        try {
+            const message = `Halo Kak ${activeOrder.details.customerName || ""}! 👋 \n Mau menginfokan kalau pesanannya sudah diserahkan ke kurir yaa. Ini untuk nomor resinya:
+            ${trackingInput} (Qin Shi Huan)
+            Silakan dicek berkala ya, Kak. Kalau paketnya sudah sampai, jangan lupa video unboxing-nya dan tag kami di #voguehub. Terima kasih banyak sudah order! ❤️`
+            const dataToSend = {
+                number: activeOrder.details.phone,
+                message: message,
+                instanceName: activeOrder.instanceName
+            }
+            const res = await axiosPrivate.post("/messages/send", dataToSend);
+            const data = res.data;
+            console.log(data);
+            toast.success("Nomer Resi Berhasil di kirim");
+        } catch (err) {
+            console.error("Fetch Error: ", err);
         }
     }
 
@@ -101,6 +124,7 @@ export default function useOrder() {
         activeOrder,
         formatCurrency,
         orderRef,
-        containerOrderRef
+        containerOrderRef,
+        handleNotifToWA
     }
 }

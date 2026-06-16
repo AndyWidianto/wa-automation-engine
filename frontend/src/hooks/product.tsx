@@ -40,9 +40,8 @@ export default function useProduct() {
             if (searchTerm.trim()) {
                 query += `&search=${searchTerm}`;
             }
-            const res = await axiosPrivate.get(`/products?limit=${itemsPerPage}${query}`)
+            const res = await axiosPrivate.get(`/products?limit=${itemsPerPage}${query}`);
             const data = res.data;
-            console.log("Data product: ", data);
             setProducts(prev => [...prev, ...data.data]);
             setNextId(data.nextId);
             setTotalPages(data.totalPage);

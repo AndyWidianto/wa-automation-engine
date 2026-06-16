@@ -2,6 +2,7 @@ import { Eye, Edit3, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TdActionSkeleton, TdDateSkeleton, TdIdSkeleton, TdNoSkeleton, TdPriceSkeleton, TdStatusSkeleton, TrSkeleton } from '../components/Skeletons';
 import useOrderTable from '../hooks/orderTable';
 import EditOrderModal from '../components/EditOrderModal';
+import type { Order } from '../lib/types';
 
 
 
@@ -34,12 +35,13 @@ export default function OrderTable() {
     indexOfLastItem,
     handleDelete,
     loadingForDelete,
-    orders
+    orders,
+    updateOrder
   } = useOrderTable();
 
   return (
     <>
-      <EditOrderModal order={orderSelected} isOpen={isOpen} onClose={handleClose} onSave={() => { }} />
+      <EditOrderModal order={orderSelected} isOpen={isOpen} onClose={handleClose} onSave={(order: Order) => updateOrder(order)} />
       {/* Table Container */}
       <div className="overflow-hidden rounded-xl shadow-2xl border border-gray-300 dark:border-gray-800">
         <div className="overflow-x-auto block w-full">
