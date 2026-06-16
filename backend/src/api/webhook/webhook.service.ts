@@ -1,7 +1,6 @@
 import { PrismaService } from "../../lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { ChatbotService } from "../chatbot/chatbot.service";
-import { MessageService } from "../message/message.service";
 
 
 
@@ -12,7 +11,6 @@ export class WebhookService {
     constructor(
         private prisma: PrismaService,
         private chatbotService: ChatbotService,
-        private messageService: MessageService,
     ) { }
 
     async autoreply(remoteJid: string, message: string) {

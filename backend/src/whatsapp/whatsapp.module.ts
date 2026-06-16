@@ -2,6 +2,8 @@ import { Global, Module } from "@nestjs/common";
 import { WhatsappService } from "./whatsapp.service";
 import { WebhookModule } from "@/api/webhook/webhook.module";
 import { EmailService } from "@/lib/email/email.service";
+import { OrderModule } from "@/api/order/order.module";
+import { EventModule } from "@/event/event.module";
 
 
 @Global()
@@ -12,6 +14,8 @@ import { EmailService } from "@/lib/email/email.service";
     ],
     imports: [
         WebhookModule,
+        OrderModule,
+        EventModule
     ],
     exports: [
         WhatsappService,

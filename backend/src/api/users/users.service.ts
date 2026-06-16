@@ -1,5 +1,5 @@
+import { StorageService } from "@/lib/storage/storage.service";
 import { PrismaService } from "../../lib/prisma/prisma.service";
-import { supabaseClient } from "../../lib/supabase";
 import { CreateUser, PayloadJWT, PayloadUser, ResetPassword } from "../../lib/types";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import bcrypt from "bcryptjs";
@@ -9,7 +9,10 @@ import bcrypt from "bcryptjs";
 
 @Injectable()
 export class UsersService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private storage: StorageService
+    ) { }
 
 
     async findOne(id: string) {
@@ -80,25 +83,13 @@ export class UsersService {
     async uploadProfile(user: PayloadJWT, file: Express.Multer.File) {
         const existing = await this.findOne(user.id);
         const fileName = `${Date.now()}-${file.originalname}`;
-        const supabase = supabaseClient();
-        const { data, error } = await supabase.storage
-            .from('profile_images')
-            .upload(fileName, file.buffer, {
-                contentType: file.mimetype,
-                upsert: true
-            });
+        const saveFile = await this.storage.uploadImage(file);
 
-        if (error) throw new Error('Upload failed: ' + error.message);
-        const { data: { publicUrl } } = supabase.storage
-            .from('profile_images')
-            .getPublicUrl(fileName);
-
-        if (existing.thumbnail) {
-            const {data, error} = await supabase.storage
-                .from('profile_images')
-                .remove([existing.thumbnail])
-            if (error) {
-                throw new BadRequestException("Bad request");
+        if (existing.profileUrl && existing.thumbnail) {
+            try {
+                await this.storage.deleteImage(existing.thumbnail);
+            } catch (err) {
+                console.error("Terjadi kesalahan");
             }
         }
 
@@ -106,8 +97,8 @@ export class UsersService {
         const updateUser = await this.prisma.user.update({
             where: { id: user.id },
             data: {
-                profileUrl: publicUrl,
-                thumbnail: fileName
+                profileUrl: saveFile.url,
+                thumbnail: saveFile.public_id
             },
             select: {
                 id: true,

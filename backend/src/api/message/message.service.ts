@@ -1,3 +1,4 @@
+import { WhatsappService } from "@/whatsapp/whatsapp.service";
 import { EventGateway } from "../../event/event.gateway";
 import { PrismaService } from "../../lib/prisma/prisma.service";
 import { CreateMessage } from "../../lib/types";
@@ -12,7 +13,8 @@ interface Stat {
 export class MessageService {
     constructor(
         private prisma: PrismaService,
-        private gatewat: EventGateway
+        private gatewat: EventGateway,
+        private whatsapp: WhatsappService
     ) { }
 
     async create(data: CreateMessage) {
@@ -67,5 +69,13 @@ export class MessageService {
             labels: stats.map(s => s.label),
             data: stats.map(s => s.count),
         };
+    }
+
+    async sendMessage(data: { number: string, message: string, instanceName: string }, file?: Express.Multer.File) {
+        await this.whatsapp.sendMessage(data.instanceName, data.number, data.message);
+        return {
+            success: true,
+            message: "send message successfully"
+        }
     }
 }

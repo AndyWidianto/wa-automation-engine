@@ -49,64 +49,64 @@ export class ChatbotService {
         FROM knowledges
         WHERE 1 - (embedding <=> ${vectorString}::vector) > 0.6
         ORDER BY similarity DESC
-        LIMIT 3
+        LIMIT 10
         `;
         console.log(contextChunks);
         const contextText = contextChunks.map(c => c.content).join('\n\n');
         const systemRules = `
-        ${rawAutoreply?.map(raw => `${raw.aiPrompt} \n`) || 'Asisten...'}
-
+        ${rawAutoreply?.map(raw => raw.aiPrompt).join('\n') || 'Asisten...'}
         Aturan:
-        - Gunakan data pada KONTEKS sebagai sumber informasi utama.
-        - Jika informasi tidak ada di KONTEKS, katakan bahwa informasi tidak tersedia.
-        - Jika pelanggan belum memberikan Nama, No HP, atau Alamat, minta data yang masih kurang.
-        - Jika Nama, No HP, dan Alamat sudah lengkap, berikan konfirmasi pesanan lalu cetak JSON berikut di baris paling bawah menggunakan tag <order_data>:
+
+        1. Gunakan KONTEKS sebagai sumber informasi utama.
+        2. Jika informasi tidak ada di KONTEKS, jawab: "Informasi tidak tersedia."
+        3. Saat pelanggan ingin memesan, pastikan data berikut lengkap:
+
+        * Nama
+        * No HP
+        * Alamat
+        4. Jika ada data yang belum lengkap, minta hanya data yang kurang.
+        5. Jika semua data lengkap, tampilkan konfirmasi pesanan lalu cetak JSON di baris terakhir menggunakan tag <order_data>.
+        6. Jangan pernah menampilkan <order_data> sebelum data pelanggan lengkap.
+        7. totalPrice harus berupa angka tanpa format Rupiah.
+
+        Aturan Produk:
+        8. Jangan langsung menampilkan harga produk saat menjawab pertanyaan umum.
+        9. Harga hanya boleh ditampilkan jika:
+
+        * Pelanggan secara eksplisit menanyakan harga, atau
+        * Sedang menampilkan rincian pesanan/checkout.
+
+        10. Jika pelanggan hanya menanyakan produk, fokus pada deskripsi, manfaat, kategori, atau variasi produk tanpa menyebutkan harga.
+        11. Jangan pernah menyebutkan jumlah stok secara nominal (contoh: "stok 5", "tersisa 12").
+        12. Jika stok tersedia, jawab dengan "stok tersedia" atau "stok masih tersedia".
+        13. Jika stok sedikit, jawab dengan "stok terbatas".
+        14. Jika stok habis, jawab dengan "stok habis".
+        15. Jangan mengungkap angka stok dalam kondisi apa pun.
+
+        Format JSON:
 
         <order_data>
         {
         "isOrderValid": true,
-        "customerName": "Nama user",
-        "address": "Alamat lengkap user",
+        "customerName": "Nama pelanggan",
+        "address": "Alamat lengkap",
         "totalPrice": 225000,
         "items": [
-            {
+                {
                 "id": "product1",
                 "price": 140000,
-                "nameProduct": "celana x",
+                "nameProduct": "Celana X",
                 "imageUrl": "https://...",
-                "quantity": 2,
-            },
-            {
-                "id": "product2",
-                "price": 100000,
-                "nameProduct": "celana y",
-                "imageUrl": "https://...",
-                "quantity": 2,
-            }
-        ]
+                "quantity": 2
+                }
+            ]
         }
         </order_data>
 
-        - Jangan tampilkan <order_data> sebelum semua data lengkap.
-        - totalPrice harus berupa angka tanpa format Rupiah.
 
         KONTEKS:
         ${contextText}
-
-        Contoh output order:
-
-        Baik Kak, ini rincian pesanan Kakak ya:
-        - 1x Gamis Syari Khalisa (Rp 245.000)
-        - 1x Kopi Susu Gula Aren (Rp 15.000)
-
-        👉 Total Belanjaan: **Rp 260.000**
-
-        Untuk melanjutkan proses pengiriman, silakan isi:
-        Nama Penerima:
-        No. Handphone:
-        Alamat Lengkap:
         `;
-
         const response = await this.ollama.chatbot(data.id, data.message, systemRules);
 
         return {

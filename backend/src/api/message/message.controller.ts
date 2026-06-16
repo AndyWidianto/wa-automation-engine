@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
 import { MessageService } from "./message.service";
 import { AuthGuard } from "@nestjs/passport";
-import { CreateMessageDto } from "../../lib/dto/message.dto";
+import { CreateMessageDto, SendMessageDto } from "../../lib/dto/message.dto";
 
 
 @Controller("api/messages")
@@ -18,5 +18,11 @@ export class MessageController {
     @UseGuards(AuthGuard("jwt"))
     async getStats() {
         return this.service.Stats();
+    }
+
+    @Post("send")
+    @UseGuards(AuthGuard("jwt"))
+    async sendMessage(@Body() body: SendMessageDto) {
+        return await this.service.sendMessage(body);
     }
 }

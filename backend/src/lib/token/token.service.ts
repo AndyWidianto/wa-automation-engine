@@ -23,6 +23,6 @@ export class TokenService implements OnModuleInit {
     }
 
     async createRefreshToken({ id, email, role, name }: PayloadJWT) {
-        return this.jwtService.signAsync({ id, email, role, name }, { secret: this.secretRefreshToken, expiresIn: "7h" })
+        return this.jwtService.signAsync({ id, email, role, name }, { secret: this.secretRefreshToken, expiresIn: "7d" })
     }
 }

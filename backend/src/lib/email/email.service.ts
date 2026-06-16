@@ -2,7 +2,6 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Resend } from "resend";
 import { PrismaService } from "../prisma/prisma.service";
 import { OrderClient } from "../types";
-import { OrderItem } from "@prisma/client";
 
 
 @Injectable()
@@ -10,10 +9,10 @@ export class EmailService {
     private resend: Resend;
     private logger = new Logger(EmailService.name);
 
-    constructor(private prisma: PrismaService) {
+    constructor() {
         this.resend = new Resend(process.env.RESEND_API_KEY || "");
     }
-    async sendOrderEmail(orderData: OrderClient, remoteJid: string) {
+    async sendOrderEmail(orderData: OrderClient) {
         try {
             const formattedPrice = new Intl.NumberFormat('id-ID', {
                 style: 'currency',
@@ -81,35 +80,10 @@ export class EmailService {
                 </div>
                 </div>
             `;
-            const dataToSave: Omit<OrderItem, "id" | "orderId">[] = orderData.items.map(item => ({
-                price: item.price,
-                productId: item.id,
-                quantity: item.quantity
-            }));
-            const totalOrder = await this.prisma.order.count();
-            const orderId = `ORDER-${totalOrder >= 100 ? totalOrder : totalOrder >= 10 ? `0${totalOrder}` : `00${totalOrder}`}`
-            const number = remoteJid.split("@")[0];
-            await this.prisma.order.create({
-                data: {
-                    id: orderId,
-                    totalPrice: orderData.totalPrice,
-                    details: JSON.stringify({
-                        ...orderData,
-                        phone: number,
-                        remoteJid: remoteJid
-                    }),
-                    orderItems: {
-                        create: dataToSave
-                    }
-                },
-                include: {
-                    orderItems: true
-                }
-            });
             const { data, error } = await this.resend.emails.send({
-                from: "Acme <onboarding@resend.dev>",
+                from: "Pesanan Baru <onboarding@resend.dev>",
                 to: "andywidianto56@gmail.com",
-                subject: "Notifikasi Orderan Baru - UMKM HUB",
+                subject: "Notifikasi Orderan Baru - VOGUE HUB",
                 html: htmlContent
             });
             if (error) {

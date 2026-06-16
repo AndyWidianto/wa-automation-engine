@@ -2,10 +2,13 @@ import { IsEmail, IsNotEmpty, IsOptional, Matches, MinLength } from "class-valid
 
 export class SendMessageDto {
     @IsNotEmpty({ message: 'Number tidak boleh kosong' })
-    email: string;
+    number: string;
 
     @IsNotEmpty({ message: 'message tidak boleh kosong' })
     message: string;
+
+    @IsNotEmpty({ message: 'instanceName tidak boleh kosong' })
+    instanceName: string;
 }
 
 

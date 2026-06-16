@@ -1,19 +1,52 @@
+import { EventGateway } from "@/event/event.gateway";
 import { UpdateOrderDto } from "@/lib/dto/order.dto";
 import { PrismaService } from "@/lib/prisma/prisma.service";
+import { OrderClient } from "@/lib/types";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { Order, Prisma } from "@prisma/client";
+import { Order, OrderItem, Prisma } from "@prisma/client";
 
 
 
 @Injectable()
 export class OrderService {
     constructor(
-        private readonly prisma: PrismaService
+        private readonly prisma: PrismaService,
+        private gateway: EventGateway
     ) { }
 
+
+    async create(orderData: OrderClient, remoteJid: string, instanceName: string) {
+        const dataToSave: Omit<OrderItem, "id" | "orderId">[] = orderData.items.map(item => ({
+            price: item.price,
+            productId: item.id,
+            quantity: item.quantity
+        }));
+        const totalOrder = await this.prisma.order.count();
+        const orderId = `ORDER-${totalOrder >= 100 ? totalOrder : totalOrder >= 10 ? `0${totalOrder}` : `00${totalOrder}`}`
+        const number = remoteJid.split("@")[0];
+        const newOrders = this.prisma.order.create({
+            data: {
+                id: orderId,
+                totalPrice: orderData.totalPrice,
+                instanceName: instanceName,
+                details: JSON.stringify({
+                    ...orderData,
+                    phone: number,
+                    remoteJid: remoteJid
+                }),
+                orderItems: {
+                    create: dataToSave
+                }
+            },
+            include: {
+                orderItems: true
+            }
+        });
+        this.gateway.server.emit("incoming_order", [newOrders]);
+        return newOrders;
+    }
     async update(id: string, data: UpdateOrderDto) {
         await this.findOne(id);
-
         return await this.prisma.order.update({
             where: { id },
             data: data
@@ -46,7 +79,7 @@ export class OrderService {
             : Prisma.empty;
         const [orders, totalOrder] = await this.prisma.$transaction([
             this.prisma.$queryRaw<Order[]>`
-                SELECT "totalPrice", id, status, details, updated_at as "updatedAt", created_at as "createdAt" FROM orders
+                SELECT "totalPrice", id, status, details, updated_at as "updatedAt", created_at as "createdAt", "instanceName" FROM orders
                 ${whereClause}
                 ORDER BY 
                     CASE 
