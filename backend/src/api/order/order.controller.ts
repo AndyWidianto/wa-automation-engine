@@ -17,11 +17,13 @@ export class OrderController {
     }
 
     @Get()
+    @UseGuards(AuthGuard("jwt"))
     async getAllOrder(@Query() query: { limit?: string, lastId?: string, search?: string, status?: string, except?: string }) {
         return await this.service.getAll(query.limit, query.lastId, query.status, query.except);
     }
 
     @Get(":id")
+    @UseGuards(AuthGuard("jwt"))
     async getOrder(@Param("id") id: string) {
         return await this.service.findOne(id);
     }
@@ -35,6 +37,6 @@ export class OrderController {
     @Get("stats")
     @UseGuards(AuthGuard("jwt"))
     async stats() {
-        return this.service.stats();
+        return await this.service.stats();
     }
 }

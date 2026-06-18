@@ -14,8 +14,8 @@ export class ProductController {
 
     @Get()
     @UseGuards(AuthGuard("jwt"))
-    async getAll(@Query() query: { search?: string, limit?: string, lastId?: string}) {
-        return this.service.getAll(query.search, query.lastId, query.limit);
+    async getAll(@Query() query: { search?: string, limit?: string, lastId?: string, stockStatus?: string; priceRange?: string }) {
+        return this.service.getAll(query.search, query.lastId, query.limit, query.priceRange, query.stockStatus);
     }
 
     @Post()

@@ -78,7 +78,7 @@ export class OrderService {
         const whereClause = conditions.length > 0
             ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
             : Prisma.empty;
-        const [orders, totalOrder] = await this.prisma.$transaction([
+        const [orders, totalResult] = await this.prisma.$transaction([
             this.prisma.$queryRaw<Order[]>`
                 SELECT "totalPrice", id, status, details, updated_at as "updatedAt", created_at as "createdAt", "instanceName" FROM orders
                 ${whereClause}
@@ -92,8 +92,10 @@ export class OrderService {
                     id DESC
                 LIMIT ${limit};
                 `,
-            this.prisma.order.count()
+            this.prisma.$queryRaw<{ count: BigInt }[]>`
+                SELECT COUNT(*) as count FROM orders ${whereClause};`
         ]);
+        const totalOrder = Number(totalResult[0]?.count || 0);
         return {
             orders: orders,
             totalOrder,

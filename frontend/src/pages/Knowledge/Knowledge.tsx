@@ -7,7 +7,6 @@ import { TdActionSkeleton, TdContentSkeleton, TdNoSkeleton, TrSkeleton } from '.
 
 export default function Knowledge() {
   const {
-    setSearchTerm,
     knowledges,
     handleDelete,
     handleUpdate,
@@ -25,6 +24,7 @@ export default function Knowledge() {
     loadingUpdate,
     updateKnowledge,
     items,
+    handleSearchTerm
   } = useKnowledge();
 
   return (
@@ -45,7 +45,7 @@ export default function Knowledge() {
               type="text"
               placeholder="Search name or job..."
               className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchTerm}
             />
           </div>
 

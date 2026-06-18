@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import type { CreateProduct, Product } from "../lib/types"
+import type { CreateProduct, FilterStateProduct, Product } from "../lib/types"
 import useAxios from "../lib/axios.service";
 import { toast } from "sonner";
 
@@ -15,6 +15,10 @@ export default function useProduct() {
     const [selected, setSelected] = useState<Product | null>(null);
     const [isOpen, setIsOpen] = useState(false);
     const [loadingUpdate, setLoadingUpdate] = useState(false);
+    const [filterStat, setFilterStat] = useState({
+        statusStock: "all",
+        priceRange: "all"
+    })
     const [formData, setFormData] = useState<CreateProduct>({
         name: '',
         price: 0,
@@ -40,6 +44,11 @@ export default function useProduct() {
             if (searchTerm.trim()) {
                 query += `&search=${searchTerm}`;
             }
+            Object.entries(filterStat).forEach(([key, val]) => {
+                if (val && val !== "all") {
+                    query += `&${key}=${val}`;
+                }
+            })
             const res = await axiosPrivate.get(`/products?limit=${itemsPerPage}${query}`);
             const data = res.data;
             setProducts(prev => [...prev, ...data.data]);
@@ -100,8 +109,18 @@ export default function useProduct() {
         setTimeout(() => {
             setSearchTerm(value);
             setProducts([]);
+            setNextId(null);
         }, 300);
     }
+    const handleFiltered = (filter: FilterStateProduct) => {
+        setProducts([]);
+        setNextId(null);
+        setFilterStat({
+            statusStock: filter.stockStatus,
+            priceRange: filter.priceRange
+        })
+    }
+
     const handleRemoveImage = () => {
         setFormData(prev => ({ ...prev, file: null, imageUrl: '' }));
     };
@@ -171,7 +190,7 @@ export default function useProduct() {
 
     useEffect(() => {
         fetchProducts();
-    }, [searchTerm]);
+    }, [searchTerm, filterStat]);
 
     return {
         items,
@@ -197,6 +216,7 @@ export default function useProduct() {
         setFormData,
         handleDelete,
         loadingUpdate,
-        handleUpdateProduct
+        handleUpdateProduct,
+        handleFiltered
     }
 }

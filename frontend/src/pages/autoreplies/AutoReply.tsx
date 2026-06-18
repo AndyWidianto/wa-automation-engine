@@ -1,14 +1,13 @@
-import { Search, Trash2, Edit3, ChevronLeft, ChevronRight, Tag, MessageSquare, ToggleLeft} from 'lucide-react';
+import { Search, Trash2, Edit3, ChevronLeft, ChevronRight, Tag, MessageSquare, Loader2, Bot, MessageSquareOff } from 'lucide-react';
 import useAutoreply from '../../hooks/autoreply';
 import MotionModal from '../../components/Motion';
 import FormModal from '../../components/FormModal';
-import { Input, InputCheckbox, Select, Textarea } from '../../components/Inputs';
+import { Input, Select, Textarea } from '../../components/Inputs';
 import { TdActionSkeleton, TdContentSkeleton, TdNameSkeleton, TdNoSkeleton, TdStatusSkeleton, TdTypeSkeleton, TrSkeleton } from '../../components/Skeletons';
 import TableFilter from '../../components/FilteredAutoreply';
 
 export default function AutoReply() {
   const {
-    setSearchTerm,
     autoreplies,
     handleDelete,
     handleUpdate,
@@ -26,7 +25,9 @@ export default function AutoReply() {
     handleCurrent,
     handlePrev,
     itemsPerPage,
-    items
+    items,
+    handleSearchTerm,
+    handleFiltered
   } = useAutoreply();
 
   return (
@@ -43,7 +44,43 @@ export default function AutoReply() {
           </div>
           {formData.type === "keyword" ? <Textarea icon={MessageSquare} title='Response Content' onChange={(e) => setFormData(prev => ({ ...prev, replyContent: e.target.value }))} value={selected?.replyContent || ""} /> :
             <Textarea icon={MessageSquare} title='Prompt AI' onChange={(e) => setFormData(prev => ({ ...prev, aiPrompt: e.target.value }))} value={selected?.aiPrompt || ""} />}
-          <InputCheckbox title='Status' icon={ToggleLeft} isActive={selected?.isActive || false} />
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className={`p-2.5 rounded-xl border transition-all duration-300 ${formData.isActive
+                  ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-100 dark:border-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200/60 dark:border-slate-700/40 text-slate-400 dark:text-slate-500'
+                }`}>
+                {formData.isActive ? <Bot size={22} /> : <MessageSquareOff size={22} />}
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white tracking-tight">
+                  Status Auto-Reply AI
+                </h3>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                  Respons otomatis pesan WhatsApp via LLM
+                </p>
+              </div>
+            </div>
+
+            {/* PREMIUM TOGGLE SWITCH */}
+            <button
+              onClick={() => setFormData(prev => ({...prev, isActive: !prev.isActive }))}
+              disabled={loading}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${formData.isActive
+                  ? 'bg-indigo-600 dark:bg-indigo-500'
+                  : 'bg-slate-200 dark:bg-slate-800'
+                } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out flex items-center justify-center ${formData.isActive ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+              >
+                {loading && (
+                  <Loader2 className="w-3 h-3 animate-spin text-indigo-600" />
+                )}
+              </span>
+            </button>
+          </div>
         </FormModal>
       </MotionModal>
       <div className="w-full mx-1 md:mx-auto space-y-4">
@@ -56,10 +93,10 @@ export default function AutoReply() {
               type="text"
               placeholder="Search name or job..."
               className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-              onChange={(e) => setTimeout(() => setSearchTerm(e.target.value), 500)}
+              onChange={handleSearchTerm}
             />
           </div>
-          <TableFilter onApplyFilter={() => {}} />
+          <TableFilter onApplyFilter={handleFiltered} />
         </div>
 
         {/* Table Container */}

@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../lib/prisma/prisma.service";
 import { TypeNotification } from "../../lib/shared/notification";
 import { CreateAutoreplies, PayloadJWT, UpdateAutoreplies } from "../../lib/types";
@@ -19,9 +20,14 @@ export class AutoreplyService {
         if (user.role === "review") {
             throw new BadRequestException("Akses ditolak. Role Review hanya diperbolehkan melihat data.")
         }
-
+        const dataToSave = {
+            ...data,
+            isActive: data.isActive === "active" ? true : false,
+            replyContent: data.type === "keyword" ? data.replyContent : "",
+            aiPrompt: data.type === "ai_rag" ? data.aiPrompt : "",
+        }
         const newAuto = await this.prisma.autoreply.create({
-            data: { ...data }
+            data: dataToSave
         });
         await this.prisma.notification.create({
             data: {
@@ -44,10 +50,14 @@ export class AutoreplyService {
         if (user.role === "review") {
             throw new BadRequestException("Akses ditolak. Role Review hanya diperbolehkan melihat data.")
         }
-
+        const existing = await this.getOne(id);
+        const dataToUpdate = {
+            ...data,
+            isActive: data.isActive ? data.isActive === "active" ? true: false : existing.isActive
+        }
         const updateAutoreply = await this.prisma.autoreply.update({
             where: { id },
-            data: { ...data }
+            data: dataToUpdate
         })
         await this.prisma.notification.create({
             data: {
@@ -61,49 +71,59 @@ export class AutoreplyService {
 
         return updateAutoreply;
     }
-    async getAll(lastId?: string, limitStr?: string, search?: string) {
+    async getAll(lastId?: string, limitStr?: string, search?: string, status?: string, type?: string) {
         let limit = 10;
         if (limitStr && limitStr.trim()) {
             limit = Number(limitStr);
         }
 
-        const query: any = {
+        const query: Prisma.AutoreplyFindManyArgs = {
+            where: {
+                ...search ? {
+                    OR: [
+                        {
+                            name: {
+                                contains: search,
+                                mode: 'insensitive'
+                            }
+                        },
+                        {
+                            replyContent: {
+                                contains: search,
+                                mode: 'insensitive'
+                            }
+                        },
+                        {
+                            aiPrompt: {
+                                contains: search,
+                                mode: 'insensitive'
+                            }
+                        }
+                    ]
+                } : {},
+            },
+            ...lastId ? { cursor: { id: lastId }, skip: 1 } : {},
             take: limit,
             orderBy: { id: 'asc' },
         };
-
-        if (lastId) {
-            query.cursor = { id: lastId };
-            query.skip = 1;
-        }
-        if (search) {
+        if (type) {
             query.where = {
-                OR: [
-                    {
-                        name: {
-                            contains: search,
-                            mode: 'insensitive'
-                        }
-                    },
-                    {
-                        replyContent: {
-                            contains: search,
-                            mode: 'insensitive'
-                        }
-                    },
-                    {
-                        aiPrompt: {
-                            contains: search,
-                            mode: 'insensitive'
-                        }
-                    }
-                ]
-            };
+                ...query.where,
+                type: type === "rag" ? "ai_rag" : type,
+            }
+        }
+        if (status) {
+            query.where = {
+                ...query.where,
+                isActive: status === "active" ? true : false
+            }
         }
 
         const [autoreplies, totalAutoreply] = await this.prisma.$transaction([
             this.prisma.autoreply.findMany(query),
-            this.prisma.autoreply.count()
+            this.prisma.autoreply.count({
+                where: query.where
+            })
         ]);
         const totalPage = Math.ceil(totalAutoreply / limit);
         const nextCursor = autoreplies.length === limit ? autoreplies[autoreplies.length - 1].id : null;

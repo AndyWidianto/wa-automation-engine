@@ -23,8 +23,8 @@ export default function useOrderTable() {
         try {
             const res = await axiosPrivate.get("/orders");
             const data = res.data;
+            setTotalPages(data.totalPage);
             console.log(data);
-            setTotalPages(data.totalPages);
             const newOrders: Order[] = data.orders.map((ord: ResponseOrder) => ({...ord, details: ord.details ? JSON.parse(ord.details) : null }));
             setOrders(prev => [...prev, ...newOrders]);
         } catch (err) {

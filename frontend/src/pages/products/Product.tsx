@@ -1,8 +1,9 @@
-import { Search, Trash2, Edit3, ChevronLeft, ChevronRight, Filter, Package, ArrowRight, ShoppingBag, Coins, FileText, Upload, Boxes } from 'lucide-react';
+import { Search, Trash2, Edit3, ChevronLeft, ChevronRight, Package, ArrowRight, ShoppingBag, Coins, FileText, Upload, Boxes } from 'lucide-react';
 import MotionModal from '../../components/Motion';
 import { Input, Textarea } from '../../components/Inputs';
 import { TdActionSkeleton, TdContentSkeleton, TdNameSkeleton, TdNoSkeleton, TdStatusSkeleton, TdTypeSkeleton, TrSkeleton } from '../../components/Skeletons';
 import useProduct from '../../hooks/product';
+import TableFilterProduct from '../../components/FilteredProduct';
 
 export default function Products() {
   const {
@@ -24,7 +25,8 @@ export default function Products() {
     setFormData,
     handleDelete,
     handleSearch,
-    handleUpdateProduct
+    handleUpdateProduct,
+    handleFiltered
   } = useProduct();
 
   return (
@@ -127,9 +129,7 @@ export default function Products() {
             />
           </div>
 
-          <button className="flex items-center gap-2 bg-gray-100 dark:bg-gray-500 dark:bg-gray-800 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition">
-            <Filter size={16} /> Filter
-          </button>
+          <TableFilterProduct onApplyFilter={handleFiltered} />
         </div>
 
         {/* Table Container */}

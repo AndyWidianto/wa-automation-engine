@@ -48,6 +48,15 @@ export default function useKnowledge() {
         }
     };
 
+    const handleSearchTerm = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTimeout(() => {
+            setCurrentPage(1);
+            setKnowledges([]);
+            setLastId(null);
+            setSearchTerm(e.target.value);
+        }, 200);
+    }
+
     const handleUpdate = (knowledge: Knowledge) => {
         setSelected(knowledge);
         setIsOpen(true);
@@ -188,7 +197,8 @@ export default function useKnowledge() {
         handleCurrent,
         handlePrev,
         loadingUpdate,
-        items
+        items,
+        handleSearchTerm
     }
 
 }

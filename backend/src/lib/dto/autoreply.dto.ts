@@ -10,7 +10,7 @@ export class CreateAutoreplyDto {
     type: "keyword" | "ai_rag";
 
     @IsOptional()
-    isActive: boolean;
+    isActive: "active" | "inactive" = "active";
     
     @IsOptional()
     replyContent: string;

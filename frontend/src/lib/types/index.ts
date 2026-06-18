@@ -30,3 +30,8 @@ export interface StatMessage {
     data: number[];
     labels: string[];
 }
+
+export interface FilterState {
+  status: "all" | "active" | "inactive";
+  type: "all" | "rag" | "keyword";
+}

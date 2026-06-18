@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import useAxios from "../lib/axios.service";
-import type { CreateAutoreply, Autoreply } from "../lib/types";
+import type { CreateAutoreply, Autoreply, FilterState } from "../lib/types";
 import { toast } from "sonner";
 
 export default function useAutoreply() {
@@ -11,6 +11,8 @@ export default function useAutoreply() {
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [selected, setSelected] = useState<Autoreply | null>(null);
+    const [searchStatus, setSearchStatus] = useState<string | null>(null);
+    const [searchType, setSearchType] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [formData, setFormData] = useState<CreateAutoreply>({
@@ -20,7 +22,7 @@ export default function useAutoreply() {
         replyContent: null,
         isActive: true,
         file: null,
-    })
+    });
     const itemsPerPage = 7;
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -51,6 +53,24 @@ export default function useAutoreply() {
         }
     };
 
+    const handleSearchTerm = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (value === searchTerm || !value.trim()) return;
+        setTimeout(() => {
+            setAutoreplies([]);
+            setLastId(null);
+            setCurrentPage(1);
+            setSearchTerm(value);
+        }, 200);
+    }
+    const handleFiltered = (dataFiltered: FilterState) => {
+        setAutoreplies([]);
+        setLastId(null);
+        setCurrentPage(1);
+        setSearchStatus(dataFiltered.status === "all" ? null : dataFiltered.status);
+        setSearchType(dataFiltered.type === "all" ? null : dataFiltered.type);
+    }
+
     const handleUpdate = (autoreply: Autoreply) => {
         setSelected(autoreply);
         setIsOpen(true);
@@ -78,15 +98,14 @@ export default function useAutoreply() {
     }
 
     const fetchAutoreplies = async () => {
-        let query = "";
-        if (lastId) {
-            query += `&lastId=${lastId}`;
-        }
-        if (searchTerm.trim()) {
-            query += `&search=${searchTerm}`;
-        }
         setLoading(true);
-
+        let query = `${lastId ? `&lastId=${lastId}` : ''}${searchTerm.trim() ? `&search=${searchTerm}` : ''}`;
+        if (searchStatus) {
+            query += `&status=${searchStatus}`;
+        }
+        if (searchType) {
+            query += `&type=${searchType}`;
+        }
         try {
             if (itemsPerPage * currentPage < autoreplies.length) return;
             const res = await axiosPrivate.get(`/autoreplies?limit=${itemsPerPage}${query}`);
@@ -94,7 +113,7 @@ export default function useAutoreply() {
 
             setAutoreplies(prev => [...prev, ...data.autoreplies]);
             setTotalPages(data.totalPage);
-            setLastId(data.autoreplies.length > 0 ? data.autoreplies[data.autoreplies.length - 1].id : null); 
+            setLastId(data.autoreplies.length > 0 ? data.autoreplies[data.autoreplies.length - 1].id : null);
 
         } catch (err: any) {
             const errorMessage = err.response?.data?.message || "Gagal mengambil data autoreply";
@@ -119,14 +138,14 @@ export default function useAutoreply() {
 
         try {
             const dataToSend: Partial<Autoreply> = {};
-            const formEntries = Object.entries(formData) as [keyof Autoreply, any][];
+            const formEntries = Object.entries(formData) as [keyof (Autoreply & { file: File | null}), any][];
 
             formEntries.forEach(([key, newValue]) => {
                 if (key === 'id') return;
-
+                if (key === "file") return;
                 const oldValue = (selected as any)[key];
                 if (newValue !== undefined && newValue !== oldValue) {
-                    (dataToSend as any)[key] = newValue;
+                    (dataToSend as any)[key] = key === "isActive" ? newValue ? "active" : "inactive" : newValue;
                 }
             });
 
@@ -174,7 +193,7 @@ export default function useAutoreply() {
 
     useEffect(() => {
         fetchAutoreplies();
-    }, [searchTerm]);
+    }, [searchTerm, searchStatus, searchType]);
 
     return {
         handleUpdate,
@@ -199,5 +218,9 @@ export default function useAutoreply() {
         handleCurrent,
         handlePrev,
         itemsPerPage,
+        handleSearchTerm,
+        setSearchStatus,
+        setSearchType,
+        handleFiltered
     }
 }

@@ -21,7 +21,7 @@ export class ProductService {
             stock: data.stock
         }
 
-        let bucket: { publicId: string| null, fileName: string | null, imageUrl: string | null } = {
+        let bucket: { publicId: string | null, fileName: string | null, imageUrl: string | null } = {
             publicId: null,
             fileName: null,
             imageUrl: null
@@ -69,7 +69,7 @@ export class ProductService {
         `;
         return product;
     }
-    async getAll(search?: string, lastId?: string, limitStr?: string) {
+    async getAll(search?: string, lastId?: string, limitStr?: string, priceRange?: string, stockStatus?: string) {
         const limit = limitStr ? Number(limitStr) : 20;
         let query: Prisma.ProductFindManyArgs = {
             where: {
@@ -93,6 +93,30 @@ export class ProductService {
             take: limit,
             orderBy: {
                 id: "desc",
+            }
+        }
+        let priceFilter: Prisma.ProductWhereInput['price'] = undefined;
+
+        if (priceRange) {
+            switch (priceRange) {
+                case "low":
+                    priceFilter = { lt: 150000 };
+                    break;
+                case "medium":
+                    priceFilter = { gte: 150000, lte: 500000 };
+                    break;
+                case "high":
+                    priceFilter = { gte: 500000 };
+                    break;
+                default:
+                    // Jika "all", biarkan tetap undefined
+                    break;
+            }
+        }
+        if (priceFilter) {
+            query.where = {
+                ...query.where,
+                price: priceFilter
             }
         }
         const [products, totalProduct] = await this.prisma.$transaction([

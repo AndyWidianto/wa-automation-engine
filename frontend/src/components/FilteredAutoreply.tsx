@@ -1,10 +1,6 @@
 import { Check, Filter, RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-
-interface FilterState {
-  status: "all" | "active" | "inactive";
-  type: "all" | "Rag" | "keyword";
-}
+import type { FilterState } from '../lib/types';
 
 interface TableFilterProps {
   onApplyFilter: (filters: FilterState) => void;
@@ -13,8 +9,6 @@ interface TableFilterProps {
 export default function TableFilter({ onApplyFilter }: TableFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // State internal untuk menampung pilihan sebelum di-Apply
   const [filters, setFilters] = useState<FilterState>({
     status: "all",
     type: "all",
@@ -33,22 +27,20 @@ export default function TableFilter({ onApplyFilter }: TableFilterProps) {
   const handleReset = () => {
     const resetValues: FilterState = { status: "all", type: "all" };
     setFilters(resetValues);
-    onApplyFilter(resetValues); // Kirim reset ke parent component
+    onApplyFilter(resetValues); 
     setIsOpen(false);
   };
 
   const handleApply = () => {
-    onApplyFilter(filters); // Kirim data filter aktif ke parent component
+    onApplyFilter(filters);
     setIsOpen(false);
   };
 
-  // Menghitung berapa banyak filter yang sedang aktif (selain 'all')
   const activeFilterCount = 
     (filters.status !== "all" ? 1 : 0) + (filters.type !== "all" ? 1 : 0);
 
   return (
     <div className="relative inline-block text-left" ref={dropdownRef}>
-      {/* Tombol Trigger Filter */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition font-medium relative
@@ -59,8 +51,6 @@ export default function TableFilter({ onApplyFilter }: TableFilterProps) {
       >
         <Filter size={16} className={activeFilterCount > 0 ? "animate-pulse" : ""} />
         <span>Filter</span>
-        
-        {/* Badge penanda jumlah filter aktif */}
         {activeFilterCount > 0 && (
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 dark:bg-indigo-500 text-[10px] font-bold text-white">
             {activeFilterCount}
@@ -68,7 +58,6 @@ export default function TableFilter({ onApplyFilter }: TableFilterProps) {
         )}
       </button>
 
-      {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute right-0 mt-2 w-64 origin-top-right rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 focus:outline-none animate-fade-in">
           <div className="p-4 space-y-4">
@@ -96,13 +85,12 @@ export default function TableFilter({ onApplyFilter }: TableFilterProps) {
               </div>
             </div>
 
-            {/* 2. Filter Berdasarkan Tipe */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                 Tipe Sistem
               </label>
               <div className="space-y-1">
-                {(["all", "Rag", "keyword"] as const).map((option) => {
+                {(["all", "rag", "keyword"] as const).map((option) => {
                   const isChecked = filters.type === option;
                   return (
                     <button
@@ -115,7 +103,7 @@ export default function TableFilter({ onApplyFilter }: TableFilterProps) {
                           : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                       }`}
                     >
-                      <span className="capitalize">{option === "all" ? "Semua Tipe" : option}</span>
+                      <span className="capitalize">{option === "all" ? "Semua Tipe" : option.toLowerCase()}</span>
                       {isChecked && <Check size={14} className="text-indigo-600 dark:text-indigo-400" />}
                     </button>
                   );
@@ -125,7 +113,6 @@ export default function TableFilter({ onApplyFilter }: TableFilterProps) {
 
           </div>
 
-          {/* Action Footer (Reset & Apply) */}
           <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 rounded-b-xl">
             <button
               type="button"

@@ -20,3 +20,9 @@ export interface CreateProduct {
   file: null | File;
   imageUrl: string | null;
 }
+
+
+export interface FilterStateProduct {
+  stockStatus: "all" | "in_stock" | "out_of_stock";
+  priceRange: "all" | "low" | "medium" | "high";
+}

@@ -27,8 +27,8 @@ export class AutoreplyController {
 
     @Get()
     @UseGuards(AuthGuard("jwt"))
-    async getAutoreplies(@Query() query: { limit: string, lastId: string, search: string }) {
-        return this.service.getAll(query.lastId, query.limit, query.search);
+    async getAutoreplies(@Query() query: { limit?: string, lastId?: string, search?: string, status?: string, type?: string }) {
+        return this.service.getAll(query.lastId, query.limit, query.search, query.status, query.type);
     }
 
     @Get(":id")

@@ -151,7 +151,7 @@ export class KnowledgeService {
             limit = Number(limitStr);
         }
 
-        const query: any = {
+        const query: Prisma.KnowledgeFindManyArgs = {
             take: limit,
             orderBy: { id: 'asc' },
         };
@@ -181,7 +181,9 @@ export class KnowledgeService {
 
         const [knowledges, totalKnowledge] = await this.prisma.$transaction([
             this.prisma.knowledge.findMany(query),
-            this.prisma.knowledge.count()
+            this.prisma.knowledge.count({
+                where: query.where
+            })
         ]);
         const totalPage = Math.ceil(totalKnowledge / limit);
         const nextCursor = knowledges.length === limit ? knowledges[knowledges.length - 1].id : null;

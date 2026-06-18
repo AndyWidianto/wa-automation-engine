@@ -227,7 +227,7 @@ export default function Layout() {
       setSidebars(prev => prev.map(p => p.id === 129499032 ? ({...p, totalUnread: data.totalPending || 0 }) : p));
       return data;
     } catch (err) {
-      console.log("Fetch Error: ", err);
+      console.error("Fetch Error: ", err);
     }
   }
   useEffect(() => {
