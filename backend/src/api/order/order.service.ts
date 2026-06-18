@@ -59,6 +59,7 @@ export class OrderService {
         if (!existing) {
             throw new NotFoundException("order not found");
         }
+        existing.details = existing.details ? JSON.parse(existing.details.toString()) : existing.details;
         return existing;
     }
 

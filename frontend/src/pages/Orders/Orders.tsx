@@ -1,8 +1,9 @@
 import { Eye, Edit3, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { TdActionSkeleton, TdDateSkeleton, TdIdSkeleton, TdNoSkeleton, TdPriceSkeleton, TdStatusSkeleton, TrSkeleton } from '../components/Skeletons';
-import useOrderTable from '../hooks/orderTable';
-import EditOrderModal from '../components/EditOrderModal';
-import type { Order } from '../lib/types';
+import { TdActionSkeleton, TdDateSkeleton, TdIdSkeleton, TdNoSkeleton, TdPriceSkeleton, TdStatusSkeleton, TrSkeleton } from '../../components/Skeletons';
+import useOrderTable from '../../hooks/orderTable';
+import EditOrderModal from '../../components/EditOrderModal';
+import type { Order } from '../../lib/types';
+import { useNavigate } from 'react-router';
 
 
 
@@ -36,8 +37,9 @@ export default function OrderTable() {
     handleDelete,
     loadingForDelete,
     orders,
-    updateOrder
+    updateOrder,
   } = useOrderTable();
+  const navigate = useNavigate();
 
   return (
     <>
@@ -93,7 +95,7 @@ export default function OrderTable() {
                         {/* View Details */}
                         <div className="relative group">
                           <button
-                            onClick={() => /*handleDetail(order)*/ { }}
+                            onClick={() => navigate(`/dashboard/orders/${order.id}`)}
                             className="p-1.5 bg-green-600/10 text-green-500 dark:text-green-400 rounded-md hover:bg-green-500 hover:text-white transition"
                           >
                             <Eye size={16} />

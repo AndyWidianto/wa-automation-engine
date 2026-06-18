@@ -21,6 +21,11 @@ export class OrderController {
         return await this.service.getAll(query.limit, query.lastId, query.status, query.except);
     }
 
+    @Get(":id")
+    async getOrder(@Param("id") id: string) {
+        return await this.service.findOne(id);
+    }
+
     @Delete(":id")
     @UseGuards(AuthGuard("jwt"))
     async delete(@Param("id") id: string) {

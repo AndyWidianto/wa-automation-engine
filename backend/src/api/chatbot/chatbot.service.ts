@@ -127,7 +127,6 @@ export class ChatbotService {
                 isActive: true,
             }
         });
-
         if (existing) {
             return {
                 answer: existing.replyContent,

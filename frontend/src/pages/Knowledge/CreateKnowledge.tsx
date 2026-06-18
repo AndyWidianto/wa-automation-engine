@@ -24,7 +24,7 @@ export default function CreateKnowledgePage() {
                         Tambah Pengetahuan
                     </h1>
                     <p className="text-slate-500 mt-2">
-                        Berikan basis data agar AI dapat menjawab pertanyaan warga dengan akurat.
+                        Berikan basis data agar AI dapat menjawab pertanyaan client dengan akurat.
                     </p>
                 </header>
 
@@ -64,7 +64,7 @@ export default function CreateKnowledgePage() {
                                 <label className="text-xs font-bold text-slate-400 uppercase ml-1">Judul Pengetahuan</label>
                                 <input
                                     type="text"
-                                    placeholder="Contoh: Prosedur Pembuatan KK"
+                                    placeholder="Contoh: Prosedur Perusahaan"
                                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                                     defaultValue={formData.name}
                                     className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border-none outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-700 dark:text-slate-200"
@@ -91,7 +91,7 @@ export default function CreateKnowledgePage() {
                                 <label className="text-xs font-bold text-slate-400 uppercase ml-1">Judul Pengetahuan</label>
                                 <input
                                     type="text"
-                                    placeholder="Contoh: Prosedur Pembuatan KK"
+                                    placeholder="Contoh: Prosedur Perusahaan"
                                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                                     defaultValue={formData.name}
                                     className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border-none outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-700 dark:text-slate-200"

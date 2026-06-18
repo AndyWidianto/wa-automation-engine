@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { Ollama } from "ollama";
 import { Content, GoogleGenerativeAI } from "@google/generative-ai";
+import { RAM_CACHE_MODELS } from "../constants/constatns-models";
 
 
 
@@ -9,11 +10,18 @@ interface HistoryChatbot {
     chat: Content[];
 }
 
+interface GoogleAPIError {
+    code?: number;
+    status?: string;
+    message?: string;
+}
+
+
 @Injectable()
 export class AIService implements OnModuleInit {
     private genAI: GoogleGenerativeAI;
     private historyChatbot: HistoryChatbot[] = [];
-    private ollama = new Ollama({ host: process.env.BASE_URL_OLLAMA || "http://127.0.0.1:11434" });
+    //private ollama = new Ollama({ host: process.env.BASE_URL_OLLAMA || "http://127.0.0.1:11434" });
     private models: string[] = [];
     private modelsEmbedding: string[] = [];
 
@@ -25,18 +33,38 @@ export class AIService implements OnModuleInit {
     }
 
     fetchModels() {
-        this.models = [
+        const models = [
             process.env.MODEL_PRIMARY || "gemini-2.5-flash-lite",
             process.env.MODEL_SECONDARY!,
             process.env.MODEL_TERTIARY!,
             "gemma-4-26b-a4b-it",
             "gemma-4-31b-it",
-        ];
-        this.modelsEmbedding = [
+        ]
+        const modelEmbeddings = [
             process.env.MODEL_EMBEDDING_PRIMARY || "bge-m3",
             process.env.MODEL_EMBEDDING_SECONDARY || "gemini-embedding-001",
             process.env.MODEL_EMBEDDING_TERTIARY!
         ];
+        this.models = models;
+        this.modelsEmbedding = modelEmbeddings;
+        for (const item of models) {
+            RAM_CACHE_MODELS[item] = {
+                limitPerDay: 20,
+                usedToken: 20,
+                active: true,
+                lastUsed: new Date(),
+                whenUpdate: new Date()
+            }
+        }
+        for (const item of modelEmbeddings) {
+            RAM_CACHE_MODELS[item] = {
+                limitPerDay: 20,
+                usedToken: 20,
+                active: true,
+                lastUsed: new Date(),
+                whenUpdate: new Date()
+            }
+        }
     }
 
     async embeddings(text: string) {
@@ -66,10 +94,22 @@ export class AIService implements OnModuleInit {
         throw new Error("Gagal mendapatkan embedding dari semua model yang tersedia.");
     }
 
+    isGoogleError(err: any): err is GoogleAPIError {
+        return err && typeof err === 'object' && ('code' in err || 'status' in err);
+    }
+
     async embeddingsGemini(text: string) {
-        for (const modelName of this.modelsEmbedding) {
+        for (const m of this.modelsEmbedding) {
+            const findModel = RAM_CACHE_MODELS[m];
             try {
-                const model = this.genAI.getGenerativeModel({ model: modelName });
+                if (!findModel.active) {
+                    const now = new Date();
+                    const dateUpdate = new Date(findModel.whenUpdate);
+                    if (now.getTime() < dateUpdate.getTime()) continue;
+                    findModel.whenUpdate = new Date(now.getTime() + (2 * 60 * 1000));
+                    findModel.active = true;
+                }
+                const model = this.genAI.getGenerativeModel({ model: m });
                 const result = await model.embedContent({
                     content: {
                         parts: [{ text: text }]
@@ -79,8 +119,23 @@ export class AIService implements OnModuleInit {
 
                 const embedding = result.embedding;
                 return embedding.values;
-            } catch (err) {
-                console.error(`Gagal mendapatkan embedding dari model ${modelName}:`, err);
+            } catch (err: unknown) {
+                console.error(`Gagal mendapatkan jawaban dari model ${m}:`, err);
+                if (findModel) {
+                    const now = new Date();
+                    if (this.isGoogleError(err)) {
+                        if (err.code === 429 || err.status === 'RESOURCE_EXHAUSTED') {
+                            console.warn(`Model ${m} mencapai batas kuota (Rate Limit).`);
+                            findModel.limitPerDay = 0;
+                        }
+                    }
+
+                    findModel.active = false;
+                    findModel.whenUpdate = new Date(now.getTime() + (3 * 60 * 1000));
+                    findModel.lastUsed = now;
+                }
+            } finally {
+                RAM_CACHE_MODELS[m] = findModel;
             }
         }
         throw new Error("Gagal mendapatkan embedding dari semua model yang tersedia.");
@@ -95,7 +150,15 @@ export class AIService implements OnModuleInit {
         // return response.message.content;
         const history = this.historyChatbot.find(h => h.id === id);
         for (const m of this.models) {
+            const findModel = RAM_CACHE_MODELS[m];
             try {
+                if (!findModel.active) {
+                    const now = new Date();
+                    const dateUpdate = new Date(findModel.whenUpdate);
+                    if (now.getTime() < dateUpdate.getTime()) continue;
+                    findModel.whenUpdate = new Date(now.getTime() + (2 * 60 * 1000));
+                    findModel.active = true;
+                }
                 const model = this.genAI.getGenerativeModel({
                     model: m
                 });
@@ -131,9 +194,25 @@ export class AIService implements OnModuleInit {
                         history.chat.splice(0, history.chat.length - MAX_HISTORY);
                     }
                 }
+                findModel.usedToken = findModel.usedToken + 1;
                 return text;
-            } catch (err) {
+            } catch (err: unknown) {
                 console.error(`Gagal mendapatkan jawaban dari model ${m}:`, err);
+                if (findModel) {
+                    const now = new Date();
+                    if (this.isGoogleError(err)) {
+                        if (err.code === 429 || err.status === 'RESOURCE_EXHAUSTED') {
+                            console.warn(`Model ${m} mencapai batas kuota (Rate Limit).`);
+                            findModel.limitPerDay = 0;
+                        }
+                    }
+
+                    findModel.active = false;
+                    findModel.whenUpdate = new Date(now.getTime() + (3 * 60 * 1000));
+                    findModel.lastUsed = now;
+                }
+            } finally {
+                RAM_CACHE_MODELS[m] = findModel;
             }
         }
         throw new Error("Gagal mendapatkan jawaban dari semua model yang tersedia.");
@@ -142,14 +221,22 @@ export class AIService implements OnModuleInit {
     async reWrite(id: string, message: string): Promise<string> {
         const history = this.historyChatbot.find(h => h.id === id);
         for (const m of this.models) {
+            const findModel = RAM_CACHE_MODELS[m];
             try {
+                if (!findModel.active) {
+                    const now = new Date();
+                    const dateUpdate = new Date(findModel.whenUpdate);
+                    if (now.getTime() < dateUpdate.getTime()) continue;
+                    findModel.whenUpdate = new Date(now.getTime() + (2 * 60 * 1000));
+                    findModel.active = true;
+                }
                 const model = this.genAI.getGenerativeModel({ model: m });
                 const chat = model.startChat({
                     history: [
                         {
                             role: "user",
                             parts: [{
-                                    text: `Tugas kamu adalah menulis ulang (rewrite) pesan dari calon pelanggan menjadi kueri pencarian dokumen (RAG) yang optimal.
+                                text: `Tugas kamu adalah menulis ulang (rewrite) pesan dari calon pelanggan menjadi kueri pencarian dokumen (RAG) yang optimal.
 
                                 Aturan ketat yang harus dipatuhi:
                                 1. Normalisasikan singkatan tidak baku atau bahasa gaul menjadi kata baku (contoh: "yg" -> "yang", "blm" -> "belum", "dftr" -> "daftar").
@@ -157,7 +244,7 @@ export class AIService implements OnModuleInit {
                                 3. Ekstrak inti masalah menjadi satu pernyataan atau kalimat tanya yang padat informasi, serta mengandung kata kunci administratif/formal yang relevan.
                                 4. KHUSUS jika pelanggan berniat membeli/memesan, HANYA cantumkan nama produknya saja.
                                 5. PENTING: Langsung berikan hasil rewrite tanpa ada teks pengantar (seperti "Berikut hasilnya:"), tanpa tanda kutip, dan tanpa penjelasan apa pun.`
-                                }],
+                            }],
                         },
                         {
                             role: "model",
@@ -175,8 +262,23 @@ export class AIService implements OnModuleInit {
                 console.log(`Original: ${message} | Optimized for Embedding: ${optimizedQuery}`);
 
                 return optimizedQuery || message;
-            } catch (err) {
-                console.error(`Gagal melakukan reWrite dengan model ${m}:`, err);
+            } catch (err: unknown) {
+                console.error(`Gagal mendapatkan jawaban dari model ${m}:`, err);
+                if (findModel) {
+                    const now = new Date();
+                    if (this.isGoogleError(err)) {
+                        if (err.code === 429 || err.status === 'RESOURCE_EXHAUSTED') {
+                            console.warn(`Model ${m} mencapai batas kuota (Rate Limit).`);
+                            findModel.limitPerDay = 0;
+                        }
+                    }
+                    findModel.active = false;
+                    findModel.whenUpdate = new Date(now.getTime() + (3 * 60 * 1000));
+                    findModel.lastUsed = now;
+                }
+            } finally {
+                console.log("Testing...........................................");
+                RAM_CACHE_MODELS[m] = findModel;
             }
         }
         throw new Error("Gagal melakukan reWrite dengan semua model yang tersedia.");

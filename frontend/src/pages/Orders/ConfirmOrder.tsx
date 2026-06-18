@@ -8,8 +8,19 @@ import {
   Send,
   X,
 } from 'lucide-react';
-import useOrder from '../hooks/orderDashboard';
+import useOrder from '../../hooks/orderDashboard';
 import { useNavigate } from 'react-router';
+
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
 
 export default function OrderDashboard() {
   const {
@@ -72,7 +83,7 @@ export default function OrderDashboard() {
               >
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-bold text-slate-900 dark:text-white">{order.id}</span>
-                  <span className="text-[10px] text-slate-400 font-medium">{order.createdAt.split(',')[0]}</span>
+                  <span className="text-[10px] text-slate-400 font-medium">{formatDate(order.createdAt)}</span>
                 </div>
 
                 <div className="flex justify-between items-end">
@@ -97,7 +108,7 @@ export default function OrderDashboard() {
       </div>
 
       {/* ================= RIGHT PANE: SELECTED ORDER DETAILS ================= */}
-      {selectedOrderId && <div className="flex-1 flex flex-col bg-white dark:bg-slate-900 overflow-y-auto relative">
+      {selectedOrderId && <div className="flex-1 min-w-0 flex flex-col bg-white dark:bg-slate-900 overflow-y-auto relative">
         {/* Top Status Indicator Color Line */}
         <div className={`absolute top-0 left-0 right-0 h-1 ${activeOrder.status === 'pending' ? 'bg-slate-400' :
           activeOrder.status === 'on_delivery' ? 'bg-indigo-600' : 'bg-emerald-500'
@@ -117,7 +128,7 @@ export default function OrderDashboard() {
                   {activeOrder.status.replace('_', ' ')}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-1">Terakhir diperbarui: {activeOrder.updatedAt}</p>
+              <p className="text-xs text-slate-400 mt-1">Terakhir diperbarui: {formatDate(activeOrder.updatedAt)}</p>
             </div>
 
             {/* ACTION BUTTON JIKA STATUS PENDING */}
@@ -134,7 +145,7 @@ export default function OrderDashboard() {
 
           {/* Form Resi khusus jika status sudah beralih ke ON_DELIVERY */}
           {activeOrder.status === 'on_delivery' && (
-            <div className="p-4 bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 rounded-xl flex flex-col sm:flex-row sm:items-center gap-3 justify-between animate-in slide-in-from-top-3 duration-200">
+            <div className="p-4 bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 rounded-xl flex flex-col lg:flex-row sm:items-center gap-3 justify-between animate-in slide-in-from-top-3 duration-200">
               <div className="flex items-start gap-2.5">
                 <Truck className="text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" size={18} />
                 <div>
@@ -158,7 +169,7 @@ export default function OrderDashboard() {
           )}
 
           {/* Grid: Informasi Pelanggan */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900/40 flex items-start gap-3">
               <Package size={18} className="text-slate-400 mt-0.5" />
               <div>
