@@ -54,7 +54,6 @@ export class ProductService {
                 now()
             )`
         ]
-
         await this.prisma.$executeRaw`
             INSERT INTO "knowledges" (
                 "id", 

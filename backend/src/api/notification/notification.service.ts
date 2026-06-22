@@ -1,33 +1,34 @@
 import { PrismaService } from "../../lib/prisma/prisma.service";
-import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { NotificationType, Prisma } from "@prisma/client";
 
 
 @Injectable()
 export class NotificationService {
     constructor(
         private prisma: PrismaService
-    ) {}
+    ) { }
 
-    async getAll(userId: string, lastId?: string, limitStr?: string) {
-        let limit = 4;
-        let query: Prisma.NotificationFindManyArgs = {};
-        if (lastId) {
-            query = {
-                ...query,
+    async getAll(userId: string, lastId?: string, limitStr?: string, search?: string, type?: NotificationType) {
+        let limit = limitStr ? Number(limitStr) : 4;
+        let query: Prisma.NotificationFindManyArgs = {
+            where: {
+                ...search ? {
+                    OR: [
+                        { title: { contains: search, mode: "insensitive" } },
+                        { content: { contains: search, mode: "insensitive" } }
+                    ]
+                } : {},
+            },
+            ...lastId ? {
                 cursor: { id: lastId },
                 skip: 1
-            }
-        }
-        if (limitStr) {
-            limit = Number(limitStr);
-        }
-        query = {
-            ...query,
+            } : {},
             take: limit,
-            orderBy: {
-                id: 'desc'
-            },
+            orderBy: [
+                { isRead: "asc" },
+                { id: "desc" }
+            ],
             include: {
                 user: {
                     select: {
@@ -38,10 +39,25 @@ export class NotificationService {
                     }
                 }
             }
+        };
+        if (type) {
+            query.where = {
+                ...query.where,
+                type: type
+            }
         }
-        return this.prisma.notification.findMany({
-            ...query
-        });
+        const [notifications, totalNotification] = await this.prisma.$transaction([
+            this.prisma.notification.findMany(query),
+            this.prisma.notification.count({
+                where: query.where
+            })
+        ])
+        return {
+            totalPage: Math.ceil(totalNotification / limit),
+            total: totalNotification,
+            nextId: notifications.length > 0 ? notifications[notifications.length - 1].id : null,
+            data: notifications
+        }
     }
 
     async countUnread(userId: string) {
@@ -53,5 +69,24 @@ export class NotificationService {
         return {
             totalUnread: totalUnread
         }
+    }
+
+    async findOne(id: string) {
+        const notification = await this.prisma.notification.findFirst({
+            where: { id }
+        });
+        return notification;
+    }
+
+    async markRead(ids: string[]) {
+        await this.prisma.notification.updateMany({
+            where: {
+                id: { in: ids }
+            },
+            data: {
+                isRead: true
+            }
+        })
+        return { message: "update successfully" }
     }
 }

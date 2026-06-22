@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../lib/prisma/prisma.service';
 import { EvolutionService } from '../../lib/evolutions/evolutions.service';
 import { CreateDevice, PayloadJWT } from '../../lib/types';
-import { TypeNotification } from '../../lib/shared/notification';
+import { notificationTemplates } from '../../lib/shared/notification';
 import { WhatsappService } from '@/whatsapp/whatsapp.service';
 
 
@@ -35,13 +35,15 @@ export class DeviceService {
     const newDevice = await this.prisma.device.create({
       data: { name, instanceName }
     });
+    const dataNotif = notificationTemplates.device.create;
     await this.prisma.notification.create({
       data: {
-        title: `delete autoreply`,
-        content: instanceName,
-        type: TypeNotification.success,
+        title: dataNotif.title,
+        content: dataNotif.getContent(instanceName),
+        type: "SUCCESS",
         isRead: false,
-        userId: user.id
+        userId: user.id,
+        metaJson: newDevice
       }
     });
     return {
@@ -105,13 +107,15 @@ export class DeviceService {
     await this.prisma.device.delete({
       where: { id: device.id }
     })
+    const dataNotif = notificationTemplates.device.delete;
     await this.prisma.notification.create({
       data: {
-        title: `delete autoreply`,
-        content: device.instanceName,
-        type: TypeNotification.success,
+        title: dataNotif.title,
+        content: dataNotif.getContent(device.instanceName),
+        type: "SUCCESS",
         isRead: false,
-        userId: user.id
+        userId: user.id,
+        metaJson: device
       }
     });
     return { message: "Delete device successfully" };

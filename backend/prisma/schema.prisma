@@ -164,16 +164,29 @@ model OrderItem {
   @@map("order_items")
 }
 
-model Notification {
-  id        String   @id @default(uuid())
-  title     String
-  content   String   @db.Text
-  type      String // 'info', 'warning', 'error', 'success'
-  isRead    Boolean  @default(false)
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum NotificationType {
+  INFO
+  WARNING
+  ERROR
+  SUCCESS
+}
 
+model Notification {
+  id        String           @id @default(uuid())
+  title     String
+  content   String           @db.Text
+  type      NotificationType @default(INFO)
+  isRead    Boolean          @default(false)
+  metaJson  Json?   
+  userId    String?
+  user      User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  deletedAt DateTime?        // Menambahkan fitur Soft Delete
+
+  // Optimasi Query Performance
+  @@index([userId, isRead]) 
+  @@index([userId, deletedAt]) 
   @@map("notifications")
 }

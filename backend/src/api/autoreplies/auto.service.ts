@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../lib/prisma/prisma.service";
-import { TypeNotification } from "../../lib/shared/notification";
 import { CreateAutoreplies, PayloadJWT, UpdateAutoreplies } from "../../lib/types";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { notificationTemplates } from "@/lib/shared/notification";
 
 
 @Injectable()
@@ -29,13 +29,15 @@ export class AutoreplyService {
         const newAuto = await this.prisma.autoreply.create({
             data: dataToSave
         });
+        const dataNotif = notificationTemplates.autoreply.create;
         await this.prisma.notification.create({
             data: {
-                title: 'create autoreply',
-                content: JSON.stringify(data),
-                type: TypeNotification.success,
+                title: dataNotif.title,
+                content: dataNotif.getContent(data.name),
+                type: "SUCCESS",
                 isRead: false,
-                userId: user.id
+                userId: user.id,
+                metaJson: dataToSave
             }
         })
         return newAuto;
@@ -59,13 +61,15 @@ export class AutoreplyService {
             where: { id },
             data: dataToUpdate
         })
+        const dataNotif = notificationTemplates.autoreply.update;
         await this.prisma.notification.create({
             data: {
-                title: `update autoreply`,
-                content: JSON.stringify(updateAutoreply),
-                type: TypeNotification.success,
+                title: dataNotif.title,
+                content: dataNotif.getContent(updateAutoreply.name),
+                type: "SUCCESS",
                 isRead: false,
-                userId: user.id
+                userId: user.id,
+                metaJson: dataToUpdate
             }
         });
 
@@ -152,14 +156,15 @@ export class AutoreplyService {
         await this.prisma.autoreply.delete({
             where: { id: existing.id }
         })
-
+        const dataNotif = notificationTemplates.autoreply.delete;
         await this.prisma.notification.create({
             data: {
-                title: `delete autoreply`,
-                content: JSON.stringify(existing),
-                type: TypeNotification.success,
+                title: dataNotif.title,
+                content: dataNotif.getContent(existing.name),
+                type: "SUCCESS",
                 isRead: false,
-                userId: user.id
+                userId: user.id,
+                metaJson: existing
             }
         });
         return { message: "Delete Autoreply successfully" };

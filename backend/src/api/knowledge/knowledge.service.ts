@@ -4,7 +4,7 @@ import { CreateKnowledgeAI, PayloadJWT } from "../../lib/types";
 import * as XLSX from 'xlsx';
 import { Prisma } from "@prisma/client";
 import { AIService } from "../../lib/ai/aiservice";
-import { TypeNotification } from "../../lib/shared/notification";
+import { notificationTemplates } from "@/lib/shared/notification";
 
 const pdf = require('pdf-parse-fork');
 
@@ -111,18 +111,20 @@ export class KnowledgeService {
             VALUES ${Prisma.join(values)}
         `;
 
-        const dataContent = {
-            name: data.name
-        }
-
+        const dataNotif = notificationTemplates.knowledge.create;
 
         await this.prisma.notification.create({
             data: {
-                title: `create knowledge ai`,
-                content: JSON.stringify(dataContent),
-                type: TypeNotification.success,
+                title: dataNotif.title,
+                content: dataNotif.getContent(data.name),
+                type: "SUCCESS",
                 isRead: false,
-                userId: user.id
+                userId: user.id,
+                metaJson: {
+                    name: data.name,
+                    content: data.content,
+                    filename: data.file?.filename,
+                }
             }
         });
 
@@ -214,21 +216,14 @@ export class KnowledgeService {
         await this.prisma.knowledge.delete({
             where: { id: exisitng.id }
         });
+        const dataNotif = notificationTemplates.knowledge.delete;
         await this.prisma.notification.create({
             data: {
-                title: `${user.name} UPDATE KNOWLEDGE AI`,
-                content: `Delete Knowledge AI ${Object.entries(exisitng).join(', ')}`,
-                type: TypeNotification.success,
-                isRead: false
-            }
-        });
-        await this.prisma.notification.create({
-            data: {
-                title: `delete knowledge ai`,
-                content: JSON.stringify(exisitng),
-                type: TypeNotification.success,
+                title: dataNotif.title,
+                content: dataNotif.getContent(exisitng.name),
+                type: "SUCCESS",
                 isRead: false,
-                userId: user.id
+                metaJson: exisitng
             }
         });
         return { message: "Delete knowledge successfully" };
@@ -243,13 +238,15 @@ export class KnowledgeService {
             where: { id: existing.id },
             data: data
         });
+        const dataNotif = notificationTemplates.knowledge.update;
         await this.prisma.notification.create({
             data: {
-                title: `update knowledge ai`,
-                content: JSON.stringify(existing),
-                type: TypeNotification.success,
+                title: dataNotif.title,
+                content: dataNotif.getContent(existing.name),
+                type: "SUCCESS",
                 isRead: false,
-                userId: user.id
+                userId: user.id,
+                metaJson: existing
             }
         });
         return updateKnowledge;

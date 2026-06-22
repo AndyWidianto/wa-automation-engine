@@ -198,18 +198,38 @@ export class AIService implements OnModuleInit {
                 return text;
             } catch (err: unknown) {
                 console.error(`Gagal mendapatkan jawaban dari model ${m}:`, err);
+
                 if (findModel) {
                     const now = new Date();
+                    let cooldownTime = 3 * 60 * 1000;
+
                     if (this.isGoogleError(err)) {
-                        if (err.code === 429 || err.status === 'RESOURCE_EXHAUSTED') {
+                        const googleErr = (err as any)?.response?.data?.error || err;
+                        const isRateLimit = googleErr.code === 429 || googleErr.status === 'RESOURCE_EXHAUSTED';
+
+                        if (isRateLimit) {
                             console.warn(`Model ${m} mencapai batas kuota (Rate Limit).`);
-                            findModel.limitPerDay = 0;
+                            const quotaLimit = googleErr.details?.[0]?.metadata?.quota_limit || "";
+                            if (quotaLimit.includes("Day") || googleErr.message?.includes("per day")) {
+                                console.error(`→ Model ${m} terkena limit harian (RPD). Dimatikan sampai besok.`);
+                                findModel.limitPerDay = 0;
+
+                                const midnight = new Date();
+                                midnight.setHours(24, 1, 0, 0); // 24 jam dari hari ini berarti jam 00:01 esok hari
+                                cooldownTime = midnight.getTime() - now.getTime();
+                            } else {
+                                console.warn(`→ Model ${m} terkena limit per menit (RPM). Silakan coba sesaat lagi.`);
+                                cooldownTime = 2 * 60 * 1000;
+                            }
                         }
                     }
 
+                    // Terapkan status dan waktu pembaruan
                     findModel.active = false;
-                    findModel.whenUpdate = new Date(now.getTime() + (3 * 60 * 1000));
+                    findModel.whenUpdate = new Date(now.getTime() + cooldownTime);
                     findModel.lastUsed = now;
+
+                    console.log(`[System] Model ${m} di-nonaktifkan. Akan aktif kembali pada: ${findModel.whenUpdate.toLocaleString('id-ID')}`);
                 }
             } finally {
                 RAM_CACHE_MODELS[m] = findModel;
@@ -264,20 +284,40 @@ export class AIService implements OnModuleInit {
                 return optimizedQuery || message;
             } catch (err: unknown) {
                 console.error(`Gagal mendapatkan jawaban dari model ${m}:`, err);
+
                 if (findModel) {
                     const now = new Date();
+                    let cooldownTime = 3 * 60 * 1000;
+
                     if (this.isGoogleError(err)) {
-                        if (err.code === 429 || err.status === 'RESOURCE_EXHAUSTED') {
+                        const googleErr = (err as any)?.response?.data?.error || err;
+                        const isRateLimit = googleErr.code === 429 || googleErr.status === 'RESOURCE_EXHAUSTED';
+
+                        if (isRateLimit) {
                             console.warn(`Model ${m} mencapai batas kuota (Rate Limit).`);
-                            findModel.limitPerDay = 0;
+                            const quotaLimit = googleErr.details?.[0]?.metadata?.quota_limit || "";
+                            if (quotaLimit.includes("Day") || googleErr.message?.includes("per day")) {
+                                console.error(`→ Model ${m} terkena limit harian (RPD). Dimatikan sampai besok.`);
+                                findModel.limitPerDay = 0;
+
+                                const midnight = new Date();
+                                midnight.setHours(24, 1, 0, 0); // 24 jam dari hari ini berarti jam 00:01 esok hari
+                                cooldownTime = midnight.getTime() - now.getTime();
+                            } else {
+                                console.warn(`→ Model ${m} terkena limit per menit (RPM). Silakan coba sesaat lagi.`);
+                                cooldownTime = 2 * 60 * 1000;
+                            }
                         }
                     }
+
+                    // Terapkan status dan waktu pembaruan
                     findModel.active = false;
-                    findModel.whenUpdate = new Date(now.getTime() + (3 * 60 * 1000));
+                    findModel.whenUpdate = new Date(now.getTime() + cooldownTime);
                     findModel.lastUsed = now;
+
+                    console.log(`[System] Model ${m} di-nonaktifkan. Akan aktif kembali pada: ${findModel.whenUpdate.toLocaleString('id-ID')}`);
                 }
             } finally {
-                console.log("Testing...........................................");
                 RAM_CACHE_MODELS[m] = findModel;
             }
         }

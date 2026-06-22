@@ -5,7 +5,7 @@ import { userSeeders } from "./user";
 
 
 async function main() {
-    await userSeeders();
+    // await userSeeders();
     await createAutoreplies();
     //await  seedProducts();
 }
