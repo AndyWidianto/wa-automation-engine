@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 export default function useOrder() {
     const { axiosPrivate } = useAxios();
     const [orders, setOrders] = useState<Order[]>([]);
-    const [loading, setLoading] = useState(true);
     const [nextId, setNextId]  = useState<string | null>(null);
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(orders.length > 0 ? orders[0].id : null);
     const [trackingInput, setTrackingInput] = useState<string>("");
@@ -37,11 +36,10 @@ export default function useOrder() {
 
     const fetchOrders = async () => {
         if (!hasMore) return;
-        setLoading(true);
         try {
-            const res = await axiosPrivate.get(`/orders?limit=20&except=completed${ nextId ? `&lastId=${nextId}` : ''}`);
+            const res = await axiosPrivate.get(`/orders?limit=10&except=completed${ nextId ? `&lastId=${nextId}` : ''}`);
             const data = res.data;
-            if (data.orders.length < 20) {
+            if (data.orders.length < 10) {
                 setHasMore(false);
             }
             setNextId(data.orders.length > 0 ? data.orders[data.orders.length - 1].id : null);
@@ -50,8 +48,6 @@ export default function useOrder() {
             setOrders(prev => [...prev, ...newOrders]);
         } catch (err) {
             console.error("Fetch Error: ", err);
-        } finally {
-            setLoading(false);
         }
     }
 
@@ -116,7 +112,6 @@ export default function useOrder() {
         handleInstantShip,
         orders,
         setOrders,
-        loading,
         trackingInput,
         setTrackingInput,
         selectedOrderId,
@@ -125,6 +120,7 @@ export default function useOrder() {
         formatCurrency,
         orderRef,
         containerOrderRef,
-        handleNotifToWA
+        handleNotifToWA,
+        hasMore
     }
 }

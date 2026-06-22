@@ -17,6 +17,15 @@ export interface StatDashboard {
     knowledge: {
         growth: number;
         total: number;
+    },
+    product: {
+        total: number;
+        growth: number;
+    },
+    order: {
+        total: number;
+        growth: number;
+        income: number;
     }
 }
 

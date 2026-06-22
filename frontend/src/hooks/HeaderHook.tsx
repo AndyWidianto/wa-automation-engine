@@ -3,50 +3,12 @@ import { ThemeContext } from "../ThemeProvider";
 import { useAuthStore } from "../lib/store/authStore";
 import useAxios from "../lib/axios.service";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
 import type { Notification } from "../lib/types";
 
 export default function useHeaderHook() {
-    // const notifications = [
-    //     {
-    //         id: 1,
-    //         user: "Paul Svensson",
-    //         avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Paul",
-    //         action: "invite you to",
-    //         target: "Prototyping",
-    //         time: "Now",
-    //         category: "Courses",
-    //         type: "invite",
-    //         file: {
-    //             name: "Cover-Templates",
-    //             size: "9mb"
-    //         },
-    //         unread: true,
-    //     },
-    //     {
-    //         id: 2,
-    //         user: "Adam Nolan",
-    //         avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Adam",
-    //         action: "mentioned you in",
-    //         target: "UX Basics",
-    //         time: "9h ago",
-    //         category: "Notes",
-    //         unread: true,
-    //     },
-    //     {
-    //         id: 3,
-    //         user: "Paul Morgan",
-    //         avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Morgan",
-    //         action: "commented in",
-    //         target: "UI Design",
-    //         time: "9h ago",
-    //         category: "Blog",
-    //         unread: false,
-    //     }
-    // ];
-    // const { axiosPrivate } = useAxios();
     const { axiosPrivate } = useAxios();
     const { user } = useAuthStore();
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     const [showNotifications, setShowNotifications] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [isOpenProfile, setIsOpenProfile] = useState(false);
@@ -83,31 +45,34 @@ export default function useHeaderHook() {
         alert("Fokus ke input search! (Implementasi logika pencarian di sini)");
     }
 
-        const fetchNotifications = async () => {
-            try {
-                const res = await axiosPrivate.get(`/notifications`);
-                const data: Notification[] = res.data;
-                return data;
-            } catch (err: any) {
-                const errorMessage = err.response?.data?.message || "Gagal mengambil data notification";
-                toast.error(errorMessage, {
-                    duration: 4000,
-                    position: 'top-right',
-                    style: {
-                        borderRadius: '12px',
-                        background: '#1e293b',
-                        color: '#fff',
-                    },
-                });
-    
-                console.error("Fetch Error:", err);
-            }
+    const fetchNotifications = async () => {
+        try {
+            const res = await axiosPrivate.get(`/notifications`);
+            const data: Notification[] = res.data.data;
+            return data;
+        } catch (err: any) {
+            console.error("Fetch Error:", err);
         }
+    }
 
-        const { data: notifications, isLoading } = useQuery({
-            queryKey: ["notifications"],
-            queryFn: fetchNotifications,
-        })
+    const { data: DataNotifications, isLoading } = useQuery({
+        queryKey: ["notifications"],
+        queryFn: fetchNotifications,
+    })
+
+    const markRead = async (id: string) => {
+        if (!DataNotifications) return;
+        try {
+            setNotifications(prev => prev.map(n => n.id === id ? ({...n, isRead: true }) : n));
+            const res = await axiosPrivate.post("/notifications/markread", {
+                ids: [id],
+            });
+            const data = res.data;
+            console.log(data);
+        } catch (err) {
+            console.error("Fetch Error: ", err);
+        }
+    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -116,7 +81,7 @@ export default function useHeaderHook() {
             }
             if (refProfile.current && !refProfile.current.contains(event.target as Node)) {
                 setIsOpenProfile(false);
-            }   
+            }
         };
 
         document.addEventListener("mousedown", handleClickOutside);
@@ -124,6 +89,11 @@ export default function useHeaderHook() {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
+    useEffect(() => {
+        if (DataNotifications) {
+            setNotifications(DataNotifications);
+        }
+    }, [DataNotifications]);
 
     return {
         notifications,
@@ -140,6 +110,7 @@ export default function useHeaderHook() {
         getGreeting,
         handleSearch,
         user,
-        isLoading
+        isLoading,
+        markRead
     }
 }

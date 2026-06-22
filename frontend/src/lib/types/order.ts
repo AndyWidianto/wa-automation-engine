@@ -41,4 +41,5 @@ export interface OrderStats {
   totalPending: number;
   totalProcess: number;
   totalCompleted: number;
+  totalIncome: number;
 }

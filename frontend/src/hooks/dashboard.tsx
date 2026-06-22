@@ -7,6 +7,16 @@ import type { ApexOptions } from 'apexcharts';
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from '../lib/store/authStore';
 
+
+const formatRupiah = (angka: number): string => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0, // Mengeliminasi ,00 di ekor angka
+    maximumFractionDigits: 0,
+  }).format(angka);
+};
+
 export default function useDashboard() {
     const { theme } = useTheme();
     const { user } = useAuthStore();
@@ -147,6 +157,33 @@ export default function useDashboard() {
             des: "Total Knowledge",
             sub: `${(stats?.knowledge.growth || 0) > 0 ? "+" : "-"}${stats?.knowledge.growth}% last month`,
         }
+    ];
+
+    const matricStat2 = [
+        {
+            id: 1,
+            title: `${formatRupiah(stats?.order.income || 0)}`,
+            des: "Pendapatan Bulan Ini",
+            sub: "",
+        },
+        {
+            id: 2,
+            title: `${stats?.order.total}`,
+            des: "Total Orderan",
+            sub: "",
+        },
+        {
+            id: 3,
+            title: stats?.product.total,
+            des: "Total Products",
+            sub: "",
+        },
+        // {
+        //     id: 4,
+        //     title: stats?.knowledge.total,
+        //     des: "Total Knowledge",
+        //     sub: `${(stats?.knowledge.growth || 0) > 0 ? "+" : "-"}${stats?.knowledge.growth}% last month`,
+        // }
     ]
 
     const lineChartOptions: ApexOptions = {
@@ -176,6 +213,7 @@ export default function useDashboard() {
         statUser,
         isLoadingStatUser,
         isLoadingNotifications,
-        user
+        user,
+        matricStat2,
     }
 }

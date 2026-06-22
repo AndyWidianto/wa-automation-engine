@@ -1,261 +1,376 @@
-import { useState } from 'react';
-import { 
-  X, 
-  ChevronDown, 
-  MapPin, 
-  Phone, 
-  Package, 
-  ImageIcon,
-  Maximize2,
-  ThumbsUp,
-  Link2,
-  MoreHorizontal
-} from 'lucide-react';
+import { useState } from "react";
+import type { TypeNotification } from "../lib/types";
+import useNotification from "../hooks/useNotification";
+import { ArrowLeft, Mail, MailOpen, Trash2 } from "lucide-react";
 
-// --- Helper Formatting ---
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(amount);
+const TYPE_CONFIG = {
+  INFO: { label: "Info", bgClass: "bg-blue-50 dark:bg-blue-950", textClass: "text-blue-700 dark:text-blue-300", borderClass: "border-blue-200 dark:border-blue-800", dotClass: "bg-blue-500", icon: "ti-info-circle" },
+  SUCCESS: { label: "Success", bgClass: "bg-emerald-50 dark:bg-emerald-950", textClass: "text-emerald-700 dark:text-emerald-300", borderClass: "border-emerald-200 dark:border-emerald-800", dotClass: "bg-emerald-500", icon: "ti-circle-check" },
+  WARNING: { label: "Warning", bgClass: "bg-amber-50 dark:bg-amber-950", textClass: "text-amber-700 dark:text-amber-300", borderClass: "border-amber-200 dark:border-amber-800", dotClass: "bg-amber-500", icon: "ti-alert-triangle" },
+  ERROR: { label: "Error", bgClass: "bg-red-50 dark:bg-red-950", textClass: "text-red-700 dark:text-red-300", borderClass: "border-red-200 dark:border-red-800", dotClass: "bg-red-500", icon: "ti-alert-circle" },
 };
 
-export default function OrderDetailView() {
-  // Data simulasi berdasarkan JSON yang Anda berikan
-  const orderData = {
-    id: "ORD-9921-XY",
-    isOrderValid: true,
-    customerName: "Ahmad Dani",
-    phone: "081234567890",
-    address: "Jl. Sudirman No. 45, RT 01/RW 02, Kebayoran Baru, Jakarta Selatan",
-    totalPrice: 225000,
-    items: [
-      {
-        id: "product1",
-        price: 140000,
-        nameProduct: "Celana Chino Panjang Premium",
-        imageUrl: "", // Kosong untuk simulasi placeholder
-        quantity: 1,
-      },
-      {
-        id: "product2",
-        price: 85000,
-        nameProduct: "Kaos Polos Oversize Hitam",
-        imageUrl: "",
-        quantity: 1,
-      }
-    ]
-  };
+export default function NotificationCenter() {
+  const {
+    notifications,
+    markRead,
+    markUnread,
+    selected,
+    deleteNotif,
+    setMobileView,
+    setReadFilter,
+    readFilter,
+    unreadCount,
+    handleSelect,
+    selectedNotif,
+    parsedMeta,
+    Type,
+    searchTerm,
+    handleChange,
+    notificationRef,
+    containerRef,
+    hasMore
+  } = useNotification();
 
-  // State untuk Update Status (seperti tombol di kanan atas Asana)
-  const [currentStatus, setCurrentStatus] = useState("On Delivery");
-
-  // Mock Riwayat Status (Untuk sidebar kiri meniru Asana)
-  const statusHistory = [
-    {
-      id: 1,
-      title: "Pesanan siap dikirim ke tujuan...",
-      date: "Okt 24",
-      status: "On Delivery",
-      color: "bg-blue-500",
-      bgBadge: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-      isActive: true
-    },
-    {
-      id: 2,
-      title: "Pembayaran telah dikonfirmasi...",
-      date: "Okt 23",
-      status: "Process",
-      color: "bg-yellow-500",
-      bgBadge: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
-      isActive: false
-    },
-    {
-      id: 3,
-      title: "Pesanan baru dibuat oleh sistem...",
-      date: "Okt 23",
-      status: "Pending",
-      color: "bg-gray-500",
-      bgBadge: "bg-gray-500/10 text-gray-600 dark:text-gray-400",
-      isActive: false
-    }
-  ];
-
-  const onClose = () => {}
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/50 backdrop-blur-sm transition-opacity">
-      {/* Main Container */}
-      <div className="bg-white dark:bg-[#111827] w-full max-w-6xl h-[85vh] md:h-[80vh] rounded-xl shadow-2xl flex flex-col overflow-hidden font-sans border border-gray-200 dark:border-gray-800">
-        
-        {/* Header Component */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#111827]">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Status of '{orderData.id}'
-          </h2>
-          <div className="flex items-center gap-3">
-            {/* Update Status Dropdown */}
-            <div className="relative">
-              <select 
-                value={currentStatus}
-                onChange={(e) => setCurrentStatus(e.target.value)}
-                className="appearance-none bg-white dark:bg-[#1f2937] border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-1.5 pl-4 pr-10 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              >
-                <option value="Pending">Pending</option>
-                <option value="Process">Process</option>
-                <option value="On Delivery">Update status</option>
-                <option value="Completed">Completed</option>
-              </select>
-              <ChevronDown size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none" />
-            </div>
-            {/* Close Button */}
-            <button onClick={onClose} className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors">
-              <X size={20} />
-            </button>
+  const Sidebar = (
+    <div className="flex flex-col h-full min-h-0 bg-white bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
+      {/* Header */}
+      <div className="px-4 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <h1 className="text-base font-semibold text-slate-900 dark:text-slate-100">Notifikasi</h1>
+            {unreadCount > 0 && (
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 text-white text-xs font-semibold">{unreadCount}</span>
+            )}
           </div>
         </div>
+        {/* Search */}
+        <div className="relative mb-3">
+          <i className="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: 14 }} aria-hidden="true" />
+          <input
+            type="text"
+            placeholder="Cari notifikasi..."
+            value={searchTerm || ""}
+            onChange={e => handleChange("search", e.target.value)}
+            className="w-full pl-8 pr-3 py-2 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+          />
+        </div>
+        {/* Read filter */}
+        <div className="flex gap-1 mb-2">
+          {["ALL", "UNREAD", "READ"].map(f => (
+            <button
+              key={f}
+              onClick={() => setReadFilter(f)}
+              className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${readFilter === f ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+            >
+              {f === "ALL" ? "Semua" : f === "UNREAD" ? "Belum dibaca" : "Dibaca"}
+            </button>
+          ))}
+        </div>
+        {/* Type filter */}
+        <div className="flex gap-1 flex-wrap">
+          {["ALL", "INFO", "SUCCESS", "WARNING", "ERROR"].map(t => (
+            <button
+              key={t}
+              onClick={() => handleChange("type", t)}
+              className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${Type === t
+                ? t === "ALL" ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 border-transparent" : `${TYPE_CONFIG[t as TypeNotification]?.bgClass} ${TYPE_CONFIG[t as TypeNotification]?.textClass} ${TYPE_CONFIG[t as TypeNotification]?.borderClass}`
+                : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600"
+                }`}
+            >
+              {t === "ALL" ? "Semua" : t}
+            </button>
+          ))}
+        </div>
+      </div>
 
-        {/* Body Content (2 Columns) */}
-        <div className="flex flex-1 overflow-hidden flex-col md:flex-row bg-white dark:bg-[#111827]">
-          
-          {/* LEFT SIDEBAR: History / Timeline */}
-          <div className="w-full md:w-[320px] bg-gray-50 dark:bg-gray-800/30 border-r border-gray-200 dark:border-gray-800 overflow-y-auto hidden md:block">
-            {statusHistory.map((history) => (
-              <div 
-                key={history.id} 
-                className={`p-5 border-b border-gray-200 dark:border-gray-800 cursor-pointer transition-colors ${history.isActive ? 'bg-white dark:bg-[#1f2937] shadow-sm' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+      {/* List */}
+      <div className="flex-1 min-h-0 overflow-y-auto" ref={containerRef}>
+        {notifications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+            <i className="ti ti-inbox text-slate-300 dark:text-slate-600 mb-3" style={{ fontSize: 36 }} aria-hidden="true" />
+            <p className="text-sm text-slate-400 dark:text-slate-500">Tidak ada notifikasi ditemukan</p>
+          </div>
+        ) : (
+          notifications.map(n => {
+            const isActive = selected?.id === n.id;
+            return (
+              <button
+                onClick={() => handleSelect(n)}
+                className={`w-full text-left px-4 py-3.5 transition-all duration-150 border-b border-slate-100 dark:border-slate-800 group relative
+                ${isActive ? "bg-slate-100 dark:bg-slate-800" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"}
+                ${!n.isRead ? "" : "opacity-70"}
+              `}
+                key={n.id}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <p className="text-sm text-gray-800 dark:text-gray-200 font-medium leading-snug pr-4">
-                    {history.title}
-                  </p>
-                  <span className="text-xs text-gray-500 whitespace-nowrap">{history.date}</span>
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 pt-0.5 flex flex-col items-center gap-1.5">
+                    {!n.isRead && <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" aria-label="Belum dibaca" />}
+                    {n.isRead && <span className="w-2 h-2 rounded-full bg-transparent flex-shrink-0" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <span className={`font-medium text-sm leading-snug ${n.isRead ? "text-slate-500 dark:text-slate-400" : "text-slate-900 dark:text-slate-100"}`}>
+                        {n.title}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-2">{n.content}</p>
+                    <div className="flex items-center justify-between">
+                      <TypeBadge type={n.type} />
+                      <span className="text-xs text-slate-400 dark:text-slate-500">{formatDate(n.createdAt)}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold mt-2 ${history.bgBadge}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${history.color}`}></span>
-                  {history.status}
-                </div>
+              </button>
+            )
+          })
+        )}
+        <div className="p-2 w-full" ref={notificationRef}>
+          {hasMore ? <div className="w-full flex flex-col items-center">
+            <div className="border-4 w-8 h-8 rounded-full border-gray-100 border-t-blue-300 animate-spin"></div>
+            <div className="text-sm text-slate-400 dark:text-slate-500">Memuat lebih banyak</div>
+          </div> : <></>}
+        </div>
+      </div>
+    </div>
+  );
+
+  const Detail = (
+    <div className="flex flex-col h-full min-h-0 bg-slate-50 dark:bg-slate-900">
+      {selectedNotif ? (
+        <>
+          {/* Detail header */}
+          <div className="px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              {/* Mobile back */}
+              <button
+                onClick={() => setMobileView("list")}
+                className="md:hidden flex-shrink-0 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors"
+                aria-label="Kembali"
+              >
+               <ArrowLeft size={18} />
+              </button>
+              <div className="min-w-0">
+                <h2 className="font-semibold text-slate-900 dark:text-slate-100 text-sm leading-snug truncate">{selectedNotif.title}</h2>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{formatDate(selectedNotif.createdAt)}</p>
               </div>
-            ))}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {selectedNotif.isRead ? (
+                <button
+                  onClick={() => markUnread(selectedNotif.id)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-all"
+                >
+                  <Mail size={18} className="text-xs" />
+                  <span className="hidden sm:inline">Tandai belum dibaca</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => markRead(selectedNotif.id)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-all"
+                >
+                  <MailOpen size={18} className="text-xs" />
+                  <span className="hidden sm:inline">Tandai dibaca</span>
+                </button>
+              )}
+              <button
+                onClick={() => deleteNotif(selectedNotif)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition-all border border-red-100 dark:border-red-900"
+              >
+                <Trash2 size={18} className="text-xs" />
+                <span className="hidden sm:inline">Hapus</span>
+              </button>
+            </div>
           </div>
 
-          {/* RIGHT CONTENT: Detail View */}
-          <div className="flex-1 flex flex-col relative overflow-y-auto">
-            {/* Top Colored Indicator Bar */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-blue-500"></div>
-            
-            <div className="p-8 lg:p-10">
-              {/* Toolbar Icons (Top Right inside content) */}
-              <div className="flex justify-end gap-4 text-gray-400 mb-6">
-                <button className="hover:text-gray-600 dark:hover:text-gray-200"><Maximize2 size={18} /></button>
-                <button className="hover:text-gray-600 dark:hover:text-gray-200"><ThumbsUp size={18} /></button>
-                <button className="hover:text-gray-600 dark:hover:text-gray-200"><Link2 size={18} /></button>
-                <button className="hover:text-gray-600 dark:hover:text-gray-200"><MoreHorizontal size={18} /></button>
+          {/* Detail body */}
+          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+            {/* Main card */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <TypeBadge type={selectedNotif.type} size="md" />
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${selectedNotif.isRead ? "bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600" : "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"}`}>
+                  <i className={`ti ${selectedNotif.isRead ? "ti-mail-opened" : "ti-mail"} text-xs`} aria-hidden="true" />
+                  {selectedNotif.isRead ? "Sudah dibaca" : "Belum dibaca"}
+                </span>
               </div>
-
-              {/* Main Title */}
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-                Pesanan sedang dalam pengiriman!
-              </h1>
-
-              {/* Meta Info (Customer & Status) */}
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-lg">
-                  {orderData.customerName.charAt(0)}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-900 dark:text-white">{orderData.customerName}</span>
-                    <span className="text-sm text-gray-500">Okt 24</span>
-                  </div>
-                  <div className="flex items-center gap-6 mt-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500 min-w-[50px]">Status</span>
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                        On Delivery
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Summary Section */}
-              <div className="mb-10">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Ringkasan Pengiriman</h3>
-                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-                  Pesanan untuk <span className="font-semibold">{orderData.customerName}</span> telah berhasil diverifikasi dan saat ini sedang dalam proses pengiriman menuju alamat tujuan. Pastikan pelanggan selalu mendapatkan pembaruan terkait resi pengiriman melalui WhatsApp. 🚚
-                </p>
-                
-                {/* Customer Details Box */}
-                <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-800 flex flex-col gap-3">
-                   <div className="flex items-start gap-3 text-sm">
-                      <Phone size={16} className="text-gray-400 mt-0.5" />
-                      <div>
-                        <span className="text-gray-500 block text-xs">Nomor HP</span>
-                        <span className="font-medium text-gray-900 dark:text-gray-200">{orderData.phone}</span>
-                      </div>
-                   </div>
-                   <div className="flex items-start gap-3 text-sm">
-                      <MapPin size={16} className="text-gray-400 mt-0.5" />
-                      <div>
-                        <span className="text-gray-500 block text-xs">Alamat Pengiriman</span>
-                        <span className="font-medium text-gray-900 dark:text-gray-200">{orderData.address}</span>
-                      </div>
-                   </div>
-                </div>
-              </div>
-
-              {/* Items Section (Replaces Asana's Charts/Tasks) */}
-              <div className="grid grid-cols-1 gap-8">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <Package size={20} className="text-blue-500" />
-                    Detail Produk ({orderData.items.length})
-                  </h3>
-                  
-                  <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
-                    {orderData.items.map((item, idx) => (
-                      <div key={item.id} className={`flex items-center gap-4 p-4 bg-white dark:bg-[#1f2937] ${idx !== orderData.items.length - 1 ? 'border-b border-gray-200 dark:border-gray-800' : ''}`}>
-                        {/* Image Placeholder */}
-                        <div className="w-16 h-16 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
-                          {item.imageUrl ? (
-                            <img src={item.imageUrl} alt={item.nameProduct} className="w-full h-full object-cover rounded-md" />
-                          ) : (
-                            <ImageIcon size={24} className="text-gray-400" />
-                          )}
-                        </div>
-                        {/* Product Info */}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">{item.nameProduct}</h4>
-                          <p className="text-xs text-gray-500 mt-1">Harga Satuan: {formatCurrency(item.price)}</p>
-                        </div>
-                        {/* Quantity & Total */}
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">x{item.quantity}</p>
-                          <p className="text-sm font-bold text-gray-900 dark:text-white mt-1">
-                            {formatCurrency(item.price * item.quantity)}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {/* Total Price Footer */}
-                    <div className="bg-gray-50 dark:bg-gray-800/80 p-4 flex justify-between items-center border-t border-gray-200 dark:border-gray-800">
-                      <span className="font-semibold text-gray-700 dark:text-gray-300">Total Keseluruhan</span>
-                      <span className="text-lg font-extrabold text-blue-600 dark:text-blue-400">
-                        {formatCurrency(orderData.totalPrice)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
+              <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-2">{selectedNotif.title}</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{selectedNotif.content}</p>
             </div>
+
+            {/* Timestamps */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+              <h4 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-3">Waktu</h4>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <i className="ti ti-clock text-xs" aria-hidden="true" />
+                    Dibuat
+                  </span>
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">{formatFullDate(selectedNotif.createdAt)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <i className="ti ti-refresh text-xs" aria-hidden="true" />
+                    Diperbarui
+                  </span>
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">{formatFullDate(selectedNotif.updatedAt)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* MetaJSON */}
+            {parsedMeta && (
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                  <div className="flex items-center gap-2">
+                    <i className="ti ti-code text-slate-400" style={{ fontSize: 14 }} aria-hidden="true" />
+                    <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">MetaJSON Inspector</h4>
+                  </div>
+                  <CopyButton text={JSON.stringify(parsedMeta, null, 2)} />
+                </div>
+                <div className="p-4">
+                  <JsonNode data={parsedMeta} />
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        <EmptyState />
+      )}
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col bg-slate-100 dark:bg-slate-950" style={{ height: "100vh" }}>
+      <h2 className="sr-only">Notification Center — pusat notifikasi dengan daftar dan detail inspeksi JSON</h2>
+
+      {/* Top bar */}
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center gap-3 flex-shrink-0">
+        <div className="w-7 h-7 rounded-lg bg-slate-900 dark:bg-slate-100 flex items-center justify-center">
+          <i className="ti ti-bell text-white dark:text-slate-900" style={{ fontSize: 14 }} aria-hidden="true" />
+        </div>
+        <span className="font-semibold text-slate-900 dark:text-slate-100 text-sm">Notification Center</span>
+        <span className="text-slate-300 dark:text-slate-600 text-sm">·</span>
+        <span className="text-xs text-slate-400 dark:text-slate-500">{notifications.length} total · {unreadCount} belum dibaca</span>
+      </div>
+
+      {/* Main */}
+      <div className="flex-1 min-h-0">
+        {/* Desktop: split */}
+        <div className="grid h-full grid-cols-1 md:grid-cols-[40%_60%]">
+          <div className={`h-full ${selected ? 'hidden' : 'block'} md:block`}>
+            {Sidebar}
+          </div>
+          <div className={`${selected ? 'block' : 'hidden'} md:block h-full`}>
+            {Detail}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = (now.getTime() - d.getTime()) / 1000;
+  if (diff < 60) return "baru saja";
+  if (diff < 3600) return `${Math.floor(diff / 60)} menit lalu`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} jam lalu`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)} hari lalu`;
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function formatFullDate(iso: string) {
+  return new Date(iso).toLocaleString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function TypeBadge({ type, size = "sm" }: { type: TypeNotification, size?: string }) {
+  const cfg = TYPE_CONFIG[type];
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium border ${cfg.bgClass} ${cfg.textClass} ${cfg.borderClass} ${size === "sm" ? "text-xs" : "text-sm"}`}>
+      <i className={`ti ${cfg.icon}`} aria-hidden="true" style={{ fontSize: size === "sm" ? 11 : 13 }} />
+      {cfg.label}
+    </span>
+  );
+}
+
+function JsonNode({ data, depth = 0 }: { data: any, depth?: number }) {
+  const [expanded, setExpanded] = useState<Record<string, any>>({});
+  if (data === null || data === undefined) return <span className="text-slate-400 dark:text-slate-500 italic text-sm">null</span>;
+  if (typeof data !== "object") {
+    if (typeof data === "boolean") return <span className="text-purple-600 dark:text-purple-400 text-sm font-mono">{String(data)}</span>;
+    if (typeof data === "number") return <span className="text-blue-600 dark:text-blue-400 text-sm font-mono">{data}</span>;
+    return <span className="text-emerald-700 dark:text-emerald-400 text-sm font-mono">"{data}"</span>;
+  }
+  const isArray = Array.isArray(data);
+  const entries = Object.entries(data);
+  return (
+    <div className="w-full">
+      {entries.map(([k, v], i) => {
+        const isObj = v !== null && typeof v === "object";
+        const isExpanded = expanded[k] !== false;
+        return (
+          <div key={k} className={`flex items-start gap-2 py-1.5 ${i < entries.length - 1 ? "border-b border-slate-100 dark:border-slate-800" : ""}`}>
+            <span className="text-slate-500 dark:text-slate-400 text-sm font-mono min-w-0 flex-shrink-0" style={{ minWidth: 120 }}>
+              {isArray ? <span className="text-slate-400">[{k}]</span> : k}
+            </span>
+            <div className="flex-1 min-w-0">
+              {isObj ? (
+                <div>
+                  <button
+                    onClick={() => setExpanded(e => ({ ...e, [k]: !isExpanded }))}
+                    className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                  >
+                    <i className={`ti ${isExpanded ? "ti-chevron-down" : "ti-chevron-right"} text-xs`} aria-hidden="true" />
+                    <span className="font-mono">{isArray ? `Array[${(v as any).length}]` : `Object{${Object.keys(v).length}}`}</span>
+                  </button>
+                  {isExpanded && (
+                    <div className="mt-1 pl-3 border-l-2 border-slate-200 dark:border-slate-700">
+                      <JsonNode data={v} depth={depth + 1} />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <JsonNode data={v} depth={depth + 1} />
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center h-full min-h-96 text-center px-8">
+      <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+        <i className="ti ti-bell text-slate-400 dark:text-slate-500" style={{ fontSize: 28 }} aria-hidden="true" />
+      </div>
+      <p className="text-slate-700 dark:text-slate-300 font-medium text-base mb-1">Pilih notifikasi</p>
+      <p className="text-slate-400 dark:text-slate-500 text-sm">Klik salah satu notifikasi di sebelah kiri untuk melihat detail</p>
+    </div>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    });
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-all duration-150"
+    >
+      <i className={`ti ${copied ? "ti-check" : "ti-copy"} text-xs`} aria-hidden="true" />
+      {copied ? "Tersalin!" : "Salin JSON"}
+    </button>
   );
 }
