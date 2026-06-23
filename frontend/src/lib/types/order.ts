@@ -43,3 +43,11 @@ export interface OrderStats {
   totalCompleted: number;
   totalIncome: number;
 }
+
+export interface ChartIncome {
+  series: {
+    name: string;
+    data: number[];
+  }[],
+  categories: string[];
+}

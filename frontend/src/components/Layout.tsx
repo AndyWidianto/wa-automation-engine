@@ -234,7 +234,6 @@ export default function Layout() {
     //setRandomId();
     handleFetchStatOrder();
     socket.on("connect", () => {
-      console.log("connect successfully");
     });
     socket.on("incoming_order", (data) => {
       let totalPending = 0;

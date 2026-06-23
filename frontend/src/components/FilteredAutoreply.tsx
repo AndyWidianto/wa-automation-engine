@@ -59,7 +59,7 @@ export default function TableFilter({ onApplyFilter }: TableFilterProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 origin-top-right rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 focus:outline-none animate-fade-in">
+        <div className="absolute md:right-0 mt-2 w-64 origin-top-right rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 focus:outline-none animate-fade-in">
           <div className="p-4 space-y-4">
             
             {/* 1. Filter Berdasarkan Status */}

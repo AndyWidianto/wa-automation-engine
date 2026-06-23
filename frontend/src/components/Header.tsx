@@ -107,7 +107,10 @@ export default function Header({ handleToggleSidebar, headerContent, logout }: H
                             <Search size={20} />
                         </button>
                         <div className="relative" ref={refNotification}>
-                            <button className="block" onClick={() => setShowNotifications(!showNotifications)}>
+                            <button className="hidden md:block" onClick={() => setShowNotifications(!showNotifications)}>
+                                <Bell className="text-gray-400 cursor-pointer" size={20} />
+                            </button>
+                            <button className="block md:hidden" onClick={() => navigate("/dashboard/notifications")}>
                                 <Bell className="text-gray-400 cursor-pointer" size={20} />
                             </button>
                             {notifications && notifications.some(n => !n.isRead) && (
