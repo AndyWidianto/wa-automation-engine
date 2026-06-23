@@ -4,6 +4,7 @@ import { PrismaService } from "@/lib/prisma/prisma.service";
 import { OrderClient } from "@/lib/types";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { Notification, NotificationType, Order, OrderItem, Prisma } from "@prisma/client";
+import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
 
 
 
@@ -211,5 +212,82 @@ export class OrderService {
             totalCompleted,
             totalProcess,
         }
+    }
+
+    async statChartIncome() {
+        const now = new Date();
+        const currentMonthStart = startOfMonth(now);
+        const currentMonthEnd = endOfMonth(now);
+        const lastMonthStart = subMonths(currentMonthStart, 1);
+        const lastMonthEnd = endOfMonth(lastMonthStart);
+
+        const currentMonthOrders = await this.prisma.order.findMany({
+            where: {
+                status: 'completed',
+                createdAt: {
+                    gte: currentMonthStart,
+                    lte: currentMonthEnd,
+                },
+            },
+            select: {
+                totalPrice: true,
+                createdAt: true,
+            },
+        });
+        
+        const lastMonthOrders = await this.prisma.order.findMany({
+            where: {
+                status: 'completed',
+                createdAt: {
+                    gte: lastMonthStart,
+                    lte: lastMonthEnd,
+                },
+            },
+            select: {
+                totalPrice: true,
+                createdAt: true,
+            },
+        });
+
+        
+        const currentMonthMap = new Map<number, number>();
+        const lastMonthMap = new Map<number, number>();
+
+        
+        for (let i = 1; i <= 31; i++) {
+            currentMonthMap.set(i, 0);
+            lastMonthMap.set(i, 0);
+        }
+
+        
+        currentMonthOrders.forEach(order => {
+            const day = order.createdAt.getDate();
+            currentMonthMap.set(day, (currentMonthMap.get(day) || 0) + order.totalPrice);
+        });
+
+        
+        lastMonthOrders.forEach(order => {
+            const day = order.createdAt.getDate();
+            lastMonthMap.set(day, (lastMonthMap.get(day) || 0) + order.totalPrice);
+        });
+
+        
+        const categories = Array.from({ length: 31 }, (_, i) => `Tgl ${i + 1}`);
+        const currentMonthData = Array.from(currentMonthMap.values());
+        const lastMonthData = Array.from(lastMonthMap.values());
+
+        return {
+            series: [
+                {
+                    name: `Bulan Ini (${format(now, 'MMMM')})`,
+                    data: currentMonthData,
+                },
+                {
+                    name: `Bulan Lalu (${format(lastMonthStart, 'MMMM')})`,
+                    data: lastMonthData,
+                },
+            ],
+            categories: categories,
+        };
     }
 }

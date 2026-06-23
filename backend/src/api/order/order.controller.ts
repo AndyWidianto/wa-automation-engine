@@ -12,8 +12,15 @@ export class OrderController {
 
 
     @Get("stats")
+    @UseGuards(AuthGuard("jwt"))
     async stats() {
         return await this.service.stats();
+    }
+
+    @Get("stats/chart/income")
+    @UseGuards(AuthGuard("jwt"))
+    async statChartIncome() {
+        return await this.service.statChartIncome();
     }
 
     @Patch(":id")

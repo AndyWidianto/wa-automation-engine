@@ -108,7 +108,6 @@ export class ProductService {
                     priceFilter = { gte: 500000 };
                     break;
                 default:
-                    // Jika "all", biarkan tetap undefined
                     break;
             }
         }
@@ -116,6 +115,28 @@ export class ProductService {
             query.where = {
                 ...query.where,
                 price: priceFilter
+            }
+        }
+        let stockFilter: Prisma.ProductWhereInput["stock"] = undefined;
+        if (stockStatus) {
+            switch (stockStatus) {
+                case "low": 
+                    stockFilter = { lte: 40 };
+                    break;
+                case "medium": 
+                    stockFilter = { gt: 40, lte: 100 };
+                    break;
+                case "high": 
+                    stockFilter = { gt: 100 }
+                    break;
+                default: 
+                    break;
+            }
+        }
+        if (stockFilter) {
+            query.where = {
+                ...query.where,
+                stock: stockFilter
             }
         }
         const [products, totalProduct] = await this.prisma.$transaction([

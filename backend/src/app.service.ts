@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from './lib/prisma/prisma.service';
+import { endOfMonth, startOfMonth } from 'date-fns';
 
 @Injectable()
 export class AppService {
@@ -11,6 +12,8 @@ export class AppService {
   async getDashboardStats() {
     const now = new Date();
     const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const currentMonthStart = startOfMonth(now);
+    const currentMonthEnd = endOfMonth(now);
 
     const [totalAutoreply, totalKnowledge, lastMonthAutoreply, lastMonthKnowledge, totalProduct, totalIncome, totalOrder] =
       await this.prisma.$transaction([
@@ -25,10 +28,11 @@ export class AppService {
         this.prisma.product.count(),
         this.prisma.order.aggregate({
           where: {
-            OR: [
-              { status: "completed" },
-              { status: "on_delivery" }
-            ]
+            status: "completed",
+            createdAt: {
+              gte: currentMonthStart, // Mulai dari tanggal 1 bulan ini jam 00:00
+              lte: currentMonthEnd,   // Sampai tanggal terakhir bulan ini jam 23:59
+            }
           },
           _sum: {
             totalPrice: true
