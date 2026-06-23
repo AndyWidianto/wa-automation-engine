@@ -24,7 +24,6 @@ export default function Dashboard() {
         isLoadingChartIncome,
         getLineChartOptions,
         products,
-        isLoadingProduct
     } = useDashboard();
     return (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-2">
