@@ -51,7 +51,6 @@ export class ChatbotService {
         ORDER BY similarity DESC
         LIMIT 10
         `;
-        console.log(contextChunks);
         const contextText = contextChunks.map(c => c.content).join('\n\n');
         const systemRules = `
         ${rawAutoreply?.map(raw => raw.aiPrompt).join('\n') || 'Asisten...'}

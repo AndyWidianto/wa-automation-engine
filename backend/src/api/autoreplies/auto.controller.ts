@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { AutoreplyService } from "./auto.service";
 import { CreateAutoreplyDto, UpdateAutoreplyDto } from "../../lib/dto/autoreply.dto";
 import { AuthGuard } from "@nestjs/passport";
 import type { RequestAndPayload } from "../../lib/types";
+import { FileInterceptor } from "@nestjs/platform-express";
 
 
 
@@ -16,6 +17,14 @@ export class AutoreplyController {
     async createAutoreply(@Req() req: RequestAndPayload, @Body() body: CreateAutoreplyDto) {
         const user = req.user;
         return this.service.create(user, body);
+    }
+
+    @Post(":id/upload")
+    @UseGuards(AuthGuard("jwt"))
+    @UseInterceptors(FileInterceptor("file"))
+    async uploadFile(@Req() req: RequestAndPayload, @Param("id") id: string, @UploadedFile() file: Express.Multer.File) {
+        const user = req.user;
+        return this.service.uploadFile(user, id, file);
     }
 
     @Patch(":id")

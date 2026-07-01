@@ -26,7 +26,8 @@ export default function Products() {
     handleDelete,
     handleSearch,
     handleUpdateProduct,
-    handleFiltered
+    handleFiltered,
+    loadingUpdate
   } = useProduct();
 
   return (
@@ -107,9 +108,11 @@ export default function Products() {
 
             {/* Tombol Submit */}
             <div className="pt-2">
-              <button className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-600/20 transition-all duration-300 flex items-center justify-center gap-2 group transform active:scale-[0.98]">
-                <span>Simpan Produk</span>
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              <button className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-600/20 transition-all duration-300 group transform active:scale-[0.98]">
+                {!loadingUpdate ? <div className='w-full flex items-center justify-center gap-2'>
+                  <span>Simpan Produk</span>
+                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </div> : "Sedang memproses.."}
               </button>
             </div>
           </div>

@@ -27,21 +27,24 @@ export class WebhookService {
 
         if (existing) {
             return {
+                from: "autoreply",
                 success: true,
-                message: existing.replyContent,
+                autoreply: existing,
+                message: existing.replyContent || "Terima kasih telah menghubungi kami. Kami akan segera merespons pesan Anda.",
             }
         }
         const chatbot = await this.chatbotService.chatbot({ id: remoteJid, message: message });
         if (chatbot?.answer) {
             const parseAIChat = this.convertMarkdownToWhatsApp(chatbot.answer);
             return {
+                from: "ai_agent",
                 success: true,
                 message: parseAIChat,
                 data: chatbot.sources ? chatbot.sources : []
             }
         }
 
-        return { success: false };
+        return { success: false, from: "system", message: "Tidak ada jawaban yang sesuai." };
     }
     convertMarkdownToWhatsApp(text: string) {
         if (!text) return "";

@@ -109,6 +109,7 @@ model Autoreply {
   fileName String?
   fileUrl  String?
   mimeType String?
+  publicId String?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

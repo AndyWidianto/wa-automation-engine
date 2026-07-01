@@ -1,6 +1,5 @@
 // import { useRef } from 'react';
 import { Tag, MessageSquare, CheckCheck, BotMessageSquare, Paperclip } from 'lucide-react';
-import { ButtonPrimary } from '../../components/Buttons';
 import { Input, Select, Textarea } from '../../components/Inputs';
 import useCreateAutoreply from '../../hooks/createAutoreply';
 
@@ -17,7 +16,7 @@ const CreateAutoReply = () => {
           <h2 className="text-xl font-bold mb-6 dark:text-white">Buat Auto Reply Baru</h2>
 
           <div className="space-y-5">
-            <Input title='Keyword (Kata Kunci)' value={formData.name} onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} icon={Tag} placeholder="Contoh: Halo, Info, Surat"  />
+            <Input title='Keyword (Kata Kunci)' value={formData.name} onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} icon={Tag} placeholder="Contoh: Halo, Info, Surat" />
             <Select title='Type' value={formData.type} onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}>
               <option value="">Select Type</option>
               <option value="keyword">Keyword</option>
@@ -41,10 +40,11 @@ const CreateAutoReply = () => {
                 </div>
               </>
             ) : <div>
-              <Textarea title='Prompt AI' rows={6} value={formData.aiPrompt || ""} onChange={(e) => setFormData(prev => ({...prev, aiPrompt: e.target.value }))} icon={BotMessageSquare} />
+              <Textarea title='Prompt AI' rows={6} value={formData.aiPrompt || ""} onChange={(e) => setFormData(prev => ({ ...prev, aiPrompt: e.target.value }))} icon={BotMessageSquare} />
             </div>}
-
-            <ButtonPrimary onClick={() => alert('Auto Reply Disimpan!')}>Simpan Auto Reply</ButtonPrimary>
+            <button className="bg-primary hover:bg-primary-hover text-white font-bold py-2 px-4 rounded-md w-full">
+              Simpan Auto Reply
+            </button>
           </div>
         </form>
 

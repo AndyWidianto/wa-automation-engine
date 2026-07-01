@@ -31,7 +31,7 @@ export default function CreateProduct() {
               value={formData.name} 
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} 
               icon={ShoppingBag} 
-              placeholder="Contoh: Keripik Tempe Pedas 150g"  
+              placeholder="Contoh: Kaos Polos"  
             />
 
             {/* Grid untuk Harga & Stok */}

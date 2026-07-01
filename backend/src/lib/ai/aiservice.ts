@@ -166,7 +166,12 @@ export class AIService implements OnModuleInit {
                     history: [
                         {
                             role: "user",
-                            parts: [{ text: systemRules }],
+                            parts: [{
+                                text: `${systemRules} \nformat output: 
+                            Sebelum jawaban yang akan dibaca warga, WAJIB tulis:
+                            ===JAWABAN===
+                            Setelah itu baru berikan jawaban.
+                            Apabila perlu mengirim JSON, letakkan JSON di bagian PALING AKHIR.` }],
                         },
                         {
                             role: "model",
@@ -176,18 +181,18 @@ export class AIService implements OnModuleInit {
                     ]
                 })
                 const result = await chat.sendMessage(prompt);
-                const response = await result.response;
-                const text = response.text();
+                const text = result.response.text();
+                const cleanedText = (text.split('===JAWABAN===').pop() || text).trim();
                 if (!history) {
                     this.historyChatbot.push({
                         id: id, chat: [
                             { role: "user", parts: [{ text: prompt }] },
-                            { role: "model", parts: [{ text: text }] }
+                            { role: "model", parts: [{ text: cleanedText }] }
                         ]
                     });
                 } else {
                     history.chat.push({ role: "user", parts: [{ text: prompt }] });
-                    history.chat.push({ role: "model", parts: [{ text: text }] });
+                    history.chat.push({ role: "model", parts: [{ text: cleanedText }] });
 
                     const MAX_HISTORY = 10;
                     if (history.chat.length > MAX_HISTORY) {
@@ -195,7 +200,7 @@ export class AIService implements OnModuleInit {
                     }
                 }
                 findModel.usedToken = findModel.usedToken + 1;
-                return text;
+                return cleanedText;
             } catch (err: unknown) {
                 console.error(`Gagal mendapatkan jawaban dari model ${m}:`, err);
 
@@ -263,7 +268,12 @@ export class AIService implements OnModuleInit {
                                 2. Hilangkan semua kata basa-basi (halo, permisi, min), emosi, tanda seru, atau sapaan.
                                 3. Ekstrak inti masalah menjadi satu pernyataan atau kalimat tanya yang padat informasi, serta mengandung kata kunci administratif/formal yang relevan.
                                 4. KHUSUS jika pelanggan berniat membeli/memesan, HANYA cantumkan nama produknya saja.
-                                5. PENTING: Langsung berikan hasil rewrite tanpa ada teks pengantar (seperti "Berikut hasilnya:"), tanpa tanda kutip, dan tanpa penjelasan apa pun.`
+                                5. PENTING: Langsung berikan hasil rewrite tanpa ada teks pengantar (seperti "Berikut hasilnya:"), tanpa tanda kutip, dan tanpa penjelasan apa pun.
+                                format output: 
+                                Sebelum jawaban yang akan dibaca warga, WAJIB tulis:
+                                ===JAWABAN===
+                                Setelah itu baru berikan jawaban.
+                                Apabila perlu mengirim JSON, letakkan JSON di bagian PALING AKHIR.`
                             }],
                         },
                         {
@@ -276,12 +286,12 @@ export class AIService implements OnModuleInit {
                     ],
                 });
                 const result = await chat.sendMessage(`Ekstrak kata kunci pencarian dari pesan ini: "${message}"`);
-                const response = await result.response;
-                const optimizedQuery = response.text().trim();
+                const text = await result.response.text();
+                const cleanedText = (text.split('===JAWABAN===').pop() || text).trim();
 
-                console.log(`Original: ${message} | Optimized for Embedding: ${optimizedQuery}`);
+                console.log(`Original: ${message} | Optimized for Embedding: ${cleanedText}`);
 
-                return optimizedQuery || message;
+                return cleanedText || message;
             } catch (err: unknown) {
                 console.error(`Gagal mendapatkan jawaban dari model ${m}:`, err);
 

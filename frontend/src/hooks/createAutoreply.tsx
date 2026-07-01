@@ -26,9 +26,31 @@ export default function useCreateAutoreply() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-
         try {
-            await axiosPrivate.post(`/autoreplies`, formData);
+            let dataToSend: Record<string, unknown> = {};
+            Object.keys(formData).forEach(key => {
+                if (formData[key as keyof CreateAutoreply] !== null && formData[key as keyof CreateAutoreply] !== "") {
+                    if (key === "file" && formData.file) {
+                        dataToSend[key] = formData.file;
+                    } else {
+                        dataToSend[key] = formData[key as keyof CreateAutoreply];
+                    }
+                }
+            });
+            const res = await axiosPrivate.post(`/autoreplies`, dataToSend);
+            const data = res.data;
+            if (data.id) {
+                const fileToUpload = formData.file;
+                if (fileToUpload) {
+                    const formDataFile = new FormData();
+                    formDataFile.append("file", fileToUpload);
+                    await axiosPrivate.post(`/autoreplies/${data.id}/upload`, formDataFile, {
+                        headers: {
+                            "Content-Type": "multipart/form-data"
+                        }
+                    });
+                }
+            }
             toast.success(`Autoreply baru berhasil ditambahkan`, {
                 duration: 3000,
                 position: 'top-right',

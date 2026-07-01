@@ -3,11 +3,15 @@ import { PrismaService } from "../../lib/prisma/prisma.service";
 import { CreateAutoreplies, PayloadJWT, UpdateAutoreplies } from "../../lib/types";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { notificationTemplates } from "@/lib/shared/notification";
+import { StorageService } from "@/lib/storage/storage.service";
 
 
 @Injectable()
 export class AutoreplyService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private storageService: StorageService
+    ) { }
 
     async create(user: PayloadJWT, data: CreateAutoreplies) {
         if (data.type === "ai_rag" && !data.aiPrompt) {
@@ -20,7 +24,7 @@ export class AutoreplyService {
         if (user.role === "review") {
             throw new BadRequestException("Akses ditolak. Role Review hanya diperbolehkan melihat data.")
         }
-        const dataToSave = {
+        const dataToSave: Prisma.AutoreplyCreateInput = {
             ...data,
             isActive: data.isActive === "active" ? true : false,
             replyContent: data.type === "keyword" ? data.replyContent : "",
@@ -147,6 +151,39 @@ export class AutoreplyService {
             throw new NotFoundException("Autoreply is not found");
         }
         return existing;
+    }
+    async uploadFile(user: PayloadJWT, id: string, file: Express.Multer.File) {
+        if (user.role === "review") {
+            throw new BadRequestException("Akses ditolak. Role Review hanya diperbolehkan melihat data.")
+        }
+        const existing = await this.getOne(id);
+        if (existing.publicId) {
+            await this.storageService.deleteImage(existing.publicId);
+        }
+        const saveFile = await this.storageService.uploadImage(file);
+        const dataToUpdate = {
+            fileUrl: saveFile.url,
+            fileName: saveFile.originalname,
+            mimeType: saveFile.mimetype,
+            publicId: saveFile.public_id
+        }
+        const updateAutoreply = await this.prisma.autoreply.update({
+            where: { id },
+            data: dataToUpdate
+        })
+        const dataNotif = notificationTemplates.autoreply.update;
+        await this.prisma.notification.create({
+            data: {
+                title: dataNotif.title,
+                content: dataNotif.getContent(updateAutoreply.name),
+                type: "SUCCESS",
+                isRead: false,
+                userId: user.id,
+                metaJson: dataToUpdate
+            }
+        });
+
+        return updateAutoreply;
     }
     async delete(user: PayloadJWT, id: string) {
         if (user.role === "review") {
