@@ -14,7 +14,7 @@ interface ExcelProductRow {
 }
 
 const modelsEmbedding = [
-    process.env.MODEL_EMBEDDING_PRIMARY || "bge-m3",
+    process.env.MODEL_EMBEDDING_PRIMARY || "gemini-embedding-001",
     process.env.MODEL_EMBEDDING_SECONDARY || "gemini-embedding-001",
     process.env.MODEL_EMBEDDING_TERTIARY!
 ];

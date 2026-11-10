@@ -2,15 +2,19 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import CookieParser from "cookie-parser";
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+
+  const baseOrigin = configService.get("BASE_URL_CLIENT")
   const whitelist = [
     'http://localhost:5173',
-    process.env.BASE_URL_CLIENT,
+    baseOrigin,
     'https://asistenumkm.my.id',
     'https://www.asistenumkm.my.id'
   ];
-  const app = await NestFactory.create(AppModule);
   app.use(CookieParser())
   app.enableCors({
     origin: whitelist,
@@ -25,6 +29,6 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
     transform: true,
   }));
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(configService.get("PORT") ?? 3000);
 }
 bootstrap();

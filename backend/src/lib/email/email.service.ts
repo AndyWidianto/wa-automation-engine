@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Resend } from "resend";
 import { PrismaService } from "../prisma/prisma.service";
 import { OrderClient } from "../types";
+import { ConfigService } from "@nestjs/config";
 
 
 @Injectable()
@@ -9,8 +10,9 @@ export class EmailService {
     private resend: Resend;
     private logger = new Logger(EmailService.name);
 
-    constructor() {
-        this.resend = new Resend(process.env.RESEND_API_KEY || "");
+    constructor(private readonly configService: ConfigService) {
+        const apikey = this.configService.get<string>("RESEND_API_KEY") || "";
+        this.resend = new Resend(apikey);
     }
     async sendOrderEmail(orderData: OrderClient) {
         try {

@@ -6,6 +6,7 @@ import { ApiModule } from './api/api.module';
 import { EventModule } from './event/event.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
 import { StorageModule } from './lib/storage/storage.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -13,7 +14,10 @@ import { StorageModule } from './lib/storage/storage.module';
     ApiModule,
     EventModule,
     WhatsappModule,
-    StorageModule
+    StorageModule,
+    ConfigModule.forRoot({
+      isGlobal: true
+    })
   ],
   controllers: [AppController],
   providers: [AppService],
